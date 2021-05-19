@@ -23,7 +23,7 @@ snakeY      DB 10, 10, 10, 10, 100 dup(0) ;50 weil man bei 50 punkten gewinnt
 snakeSize   DW 3                          ;gibt an wie lang die schlange ist
 
 ;Scorevariablen
-score       DB 44
+score       DB 0
 divrest     DB 0
 
 ;Bewegungsvariable
@@ -38,7 +38,7 @@ oldIOFF DW ?                    ;? heißt nicht initialisiert
 oldISeg DW ?
 counter DW ?
 
-mode DB ?
+mode    DB ?                    ;
             INCLUDE strings.asm
 ;*************************** CODESEGMENT ******************************
             .CODE

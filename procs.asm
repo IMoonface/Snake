@@ -30,14 +30,11 @@ mausProc    PROC FAR
             shl cx, 1           ;x-koord*2 (damit wir eine wortadresse bekommen)
                                 ;cx ist nun eine byteadresse auf den Bildschirm
             add cx, dx
-            mov ax, 2           ;bevor wir auf den Bildschirm schreiben müssen wir den cursor ausschalten
             mov di, cx
-            int 33h
+
             ;da der Assembler nicht weiß, ob es sich um ein Byte oder Word handelt müssen wir es ihm sagen
             ;0FDBh = Block zeichnen
             mov WORD PTR es:[di], '#'   ;das was wir auf den bildschirm schreiben
-            mov ax, 1           ;Cursor wieder ein
-            int 33h
             pop di
             pop ds
             leave
@@ -534,6 +531,7 @@ endscreen   PROC                ;Endroutine
             je normalWinCon
             cmp mode, 3         ;normal
             je hardWinCon
+            jmp ausgabe
 easyWinCon:
             CMP score, 30
             JE winScreen        ;Falls man 50 Punkte erreicht kommt der "win"-String
