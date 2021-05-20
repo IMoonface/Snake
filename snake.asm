@@ -17,9 +17,9 @@
             .DATA
 ;***************************** DATASEGMENT ************************************
 ;Schlangen-Array
-snakeX      DB  5,  6,  7,  8, 100 dup(0) ;"50 duplicates of zero", die ersten 4 indexe haben werte für die positionen,
+snakeX      DB  5,  6,  7,  8, 60 dup(0) ;"50 duplicates of zero", die ersten 4 indexe haben werte für die positionen,
                                           ;wo die schlange starten soll, der rest ist 0
-snakeY      DB 10, 10, 10, 10, 100 dup(0) ;50 weil man bei 50 punkten gewinnt
+snakeY      DB 10, 10, 10, 10, 60 dup(0) ;50 weil man bei 50 punkten gewinnt
 snakeSize   DW 3                          ;gibt an wie lang die schlange ist
 
 ;Scorevariablen
@@ -28,53 +28,53 @@ divrest     DB 0
 
 ;Bewegungsvariable
 movflag     DB 4                ;standartmässig bewegt sich die schlange nach rechts
-speed       DW ?                ;muss WORD sein, weil wir es in CX schreiben wollen
+speed       DW ?                ;muss WORD sein, weil wir es in BX schreiben wollen
 
 ;Futtervariablen
 randomX     DB ?
 randomY     DB ?
 
-oldIOFF DW ?                    ;? heißt nicht initialisiert
-oldISeg DW ?
-counter DW ?
+oldIOFF     DW ?                ;? heißt nicht initialisiert
+oldISeg     DW ?
+counter     DW ?
 
-mode    DB ?                    ;Schwierigkeitsgrad
+mode        DB ?                ;Schwierigkeitsgrad
             INCLUDE strings.asm
 ;*************************** CODESEGMENT ******************************
             .CODE
             INCLUDE procs.asm
 ;1Ch Interrupt wird alle 18tel Sekunden ausgelöst und dient als Zeitgeber
-ISR1Ch:     push ds             ;alle Register die in einer ISR benutzt werden müssen gesichert werden!!!
-            push ax
-            mov ax, @data       ;müssen wir nochmal vorsichtshalber laden, weil wir nie wissen von wo dieser Routine aufgerufen wird
-            mov ds, ax
-            dec counter         ;runterzählen des counters
-            pop ax              ;und am Ende zurücksichern nicht vergessen!
-            pop ds
+ISR1Ch:     PUSH DS             ;alle Register die in einer ISR benutzt werden müssen gesichert werden!!!
+            PUSH AX
+            MOV AX, @data       ;müssen wir nochmal vorsichtshalber laden, weil wir nie wissen von wo dieser Routine aufgerufen wird
+            MOV DS, AX
+            DEC counter         ;runterzählen des counters
+            POP AX              ;und am Ende zurücksichern nicht vergessen!
+            POP DS
             iret
 
 start:      MOV AX, @DATA       ;Adresse des Datensegments in das Register „AX“ laden
             MOV DS, AX          ;In das Segmentregister „DS“ uebertragen
                                 ;(das DS-Register kann nicht direkt mit einer Konstante beschrieben werden)
-            mov al, 1Ch
-            mov ah, 35h
-            int 21h             ;Interrupt 21h mit ah auf 35h: Interrupt-Vektor ermitteln ((AL)	Interrupt Nummer)
+            MOV AL, 1Ch
+            MOV AH, 35h
+            INT 21h             ;Interrupt 21h mit ah auf 35h: Interrupt-Vektor ermitteln ((AL)	Interrupt Nummer)
                                 ;Diese Funktion liefert als Resultat den aktuellen Inhalt eines Interrupt-Vektors
                                 ;und damit die Adresse der zugehörigen Interrupt-Routine zurück
-            mov oldIOFF, bx
-            mov oldISeg, es     ;in es:bx ist jetzt die alte ISR Adresse und wir sichern diese
-            push ds             ;wir müssen der DOS Routine die neue adresse der ISR in ds:dx übergeben
-                                ;um nicht unser Datensegment zu verlieren sichern wir ds
+            MOV oldIOFF, bx
+            MOV oldISeg, es     ;in es:bx ist jetzt die alte ISR Adresse und wir sichern diese
+            PUSH DS             ;wir müssen der DOS Routine die neue adresse der ISR in DS:DX übergeben
+                                ;wir sichern dazu erstmal ds
 
-            push cs             ;unsere Interrupt service Routine steht ihm CodeSegment
-                                ;die CodeSegment-Adresse steht in cs, diese sichern wir ebenfalls
-            pop ds                  ;ds <- cs
-            mov dx, OFFSET ISR1Ch   ;Adresse ist jetzt in ds:dx
-            mov al, 1Ch
-            mov ah, 25h
-            int 21h             ;Interrupt 21h mit ah auf 25h: Interrupt-Vektor setzen ((AL) Interrupt Nummer)
+            PUSH CS             ;unsere Interrupt service Routine steht ihm CodeSegment
+                                ;die CodeSegment-Adresse steht in CS, diese sichern wir ebenfalls
+            POP DS              ;DS <- CS
+            MOV DX, OFFSET ISR1Ch ;Adresse ist jetzt in DS:DX
+            MOV AL, 1Ch
+            MOV AH, 25h
+            INT 21h             ;Interrupt 21h mit ah auf 25h: Interrupt-Vektor setzen ((AL) Interrupt Nummer)
                                 ;damit setzen wir jetzt unsere eigens definierte ISR1Ch
-            pop ds              ;Datensegment, dahin wo es hingehört
+            POP DS              ;Datensegment, dahin wo es hingehört
 
             MOV AH, 00h
             MOV AL, 3h
@@ -99,21 +99,16 @@ warte:      MOV AH, 0Ch         ;Tastaturbuffer leeren, damit sich schnelle Eing
             MOV AL, 0h          ;rueckgabe wert nichts
             INT 21h
 
-            ;MOV AH, 86h        ;Wartet eine bestimmte Anzahl von Mikrosekunden (aus dem Ulbricht Video)
-            ;MOV CX, speed      ;CX,DX interval in microseconds
-            ;MOV DX, 0h
-            ;INT 15h
-            xor bx, bx
-            mov bx, speed
-            mov counter, bx
+            XOR BX, BX
+            MOV BX, speed
+            MOV counter, bx
 
-warteLoop:  cmp counter, 0
-            jne warteLoop       ;warten bis der Interrupt counter runtergezählt hat
+warteLoop:  CMP counter, 0
+            JNE warteLoop       ;warten bis der Interrupt counter runtergezählt hat
 
             MOV AH, 01h         ;Keyboard Status ohne Abholung des Zeichens (von Ihnen)
             INT 16h             ;ZF = 1: kein wartendes Zeichen. ZF = 0: ein zeichen steht zur abholung bereit.
             JZ nobutton         ;JMP if ZF gesetzt (ZF = 1).
-            ;JNZ compare        ;JMP if ZF nicht gesetzt (ZF = 0). Wenn eine Taste gedrueckt wurde JMP zu compare.
 
 compare:    MOV AH, 00h         ;Liest das letzte Zeichen aus den Tastaturbuffer aus und speichert es in AL
             INT 16h
