@@ -38,12 +38,11 @@ oldIOFF DW ?                    ;? heißt nicht initialisiert
 oldISeg DW ?
 counter DW ?
 
-mode    DB ?                    ;
+mode    DB ?                    ;Schwierigkeitsgrad
             INCLUDE strings.asm
 ;*************************** CODESEGMENT ******************************
             .CODE
             INCLUDE procs.asm
-
 ;1Ch Interrupt wird alle 18tel Sekunden ausgelöst und dient als Zeitgeber
 ISR1Ch:     push ds             ;alle Register die in einer ISR benutzt werden müssen gesichert werden!!!
             push ax
@@ -53,8 +52,8 @@ ISR1Ch:     push ds             ;alle Register die in einer ISR benutzt werden m
             pop ax              ;und am Ende zurücksichern nicht vergessen!
             pop ds
             iret
-start:
-            MOV AX, @DATA       ;Adresse des Datensegments in das Register „AX“ laden
+
+start:      MOV AX, @DATA       ;Adresse des Datensegments in das Register „AX“ laden
             MOV DS, AX          ;In das Segmentregister „DS“ uebertragen
                                 ;(das DS-Register kann nicht direkt mit einer Konstante beschrieben werden)
             mov al, 1Ch
@@ -95,8 +94,8 @@ start:
             CALL randomDL       ;Aufruf der Prozedur um eine Randomzahl für DL zu erzeugen
             CALL randomDH       ;Aufruf der Prozedur um eine Randomzahl für DL zu erzeugen
             CALL printFutter    ;Aufruf der Prozedur um an Randompositionen Futter zu erzeugen
-warte:
-            MOV AH, 0Ch         ;Tastaturbuffer leeren, damit sich schnelle Eingaben nicht stappeln (aus dem Ulbricht Video)
+
+warte:      MOV AH, 0Ch         ;Tastaturbuffer leeren, damit sich schnelle Eingaben nicht stappeln (aus dem Ulbricht Video)
             MOV AL, 0h          ;rueckgabe wert nichts
             INT 21h
 
@@ -107,16 +106,16 @@ warte:
             xor bx, bx
             mov bx, speed
             mov counter, bx
-warteLoop:                      ;warten bis der Interrupt counter runtergezählt hat
-            cmp counter, 0
-            jne warteLoop
+
+warteLoop:  cmp counter, 0
+            jne warteLoop       ;warten bis der Interrupt counter runtergezählt hat
 
             MOV AH, 01h         ;Keyboard Status ohne Abholung des Zeichens (von Ihnen)
             INT 16h             ;ZF = 1: kein wartendes Zeichen. ZF = 0: ein zeichen steht zur abholung bereit.
             JZ nobutton         ;JMP if ZF gesetzt (ZF = 1).
             ;JNZ compare        ;JMP if ZF nicht gesetzt (ZF = 0). Wenn eine Taste gedrueckt wurde JMP zu compare.
-compare:
-            MOV AH, 00h         ;Liest das letzte Zeichen aus den Tastaturbuffer aus und speichert es in AL
+
+compare:    MOV AH, 00h         ;Liest das letzte Zeichen aus den Tastaturbuffer aus und speichert es in AL
             INT 16h
 
             CMP AL, 77h         ;W
@@ -129,20 +128,19 @@ compare:
             JE right
             CMP AL, 1Bh         ;ESC
             JE escape
-            JNE nobutton
+            JNE nobutton        ;Falls kein Button gedrueckt wurde
 
 ;Ueberspringt die INC bzw. DEC der snakeX oder snakeY Arrays
-noButton:                       ;Falls kein Button gedrueckt wurde, wird ueberprueft welche movflag derzeit aktiv ist
-            CMP movflag, 1
-            JE up               ;und der letzte zutreffende Fall wird wiederholt
+noButton:   CMP movflag, 1
+            JE up               ;wird ueberprueft welche movflag derzeit aktiv ist und der letzte zutreffende Fall wird wiederholt
             CMP movflag, 2
             JE down
             CMP movflag, 3
             JE left
             CMP movflag, 4
             JE right
-up:
-            CMP movflag, 2      ;Um zu verhindern, dass man direkt nach down nicht wieder up machen kann
+
+up:         CMP movflag, 2      ;Um zu verhindern, dass man direkt nach down nicht wieder up machen kann
             JE noButton
             XOR BX, BX
             MOV BH, -1          ;Kleiner Fix, weil ansonsten das neue Element im Schlangen Array an die Stelle
@@ -150,22 +148,22 @@ up:
                                 ;bis sich die Schlange "aktualisiert" (Siehe Erklaerung)
             CALL moveUp
             JMP calls
-down:
-            CMP movflag, 1      ;Um zu verhindern, dass man direkt nach up nicht wieder down machen kann
+
+down:       CMP movflag, 1      ;Um zu verhindern, dass man direkt nach up nicht wieder down machen kann
             JE noButton
             XOR BX, BX
             MOV BH, 1
             CALL moveDown
             JMP calls
-left:
-            CMP movflag, 4      ;Um zu verhindern, dass man direkt nach right nicht wieder left machen kann
+
+left:       CMP movflag, 4      ;Um zu verhindern, dass man direkt nach right nicht wieder left machen kann
             JE noButton         ;JMP Equal zu noButton (ist dann so als hätte man keinen Button gedrückt)
             XOR BX, BX
             MOV BL, -1
             CALL moveLeft
             JMP calls
-right:
-            CMP movflag, 3      ;Um zu verhindern, dass man direkt nach left nicht wieder right machen kann
+
+right:      CMP movflag, 3      ;Um zu verhindern, dass man direkt nach left nicht wieder right machen kann
             JE noButton
             XOR BX, BX
             MOV BL, 1
@@ -212,8 +210,7 @@ moveRight   PROC
             RET
 moveRight   ENDP
 
-escape:
-            MOV AH, 00h
+escape:     MOV AH, 00h
             MOV AL, 3h
             INT 10h             ;Bildschirm Loeschen
             MOV AH, 4Ch         ;Zurueck zu DOS
@@ -224,8 +221,8 @@ calls:                          ;CALLs die am Ende (egal ob gedrueckter Button o
             CALL deleteTail
             cmp score, 100      ;weil es ansonsten irgendwann die Zero Flag setzt
             JMP warte           ;Zurueck zur Endlosschleife
-ende:
-            CALL endscreen
+
+ende:       CALL endscreen
             MOV AH, 4Ch         ;Zurueck zu DOS
             INT 21h
             .STACK 100h

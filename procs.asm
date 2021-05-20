@@ -8,91 +8,50 @@ printLogo   PROC
             MOV AH, 01h             ;Cursorform einstellen
             MOV CX, 2607h           ;CX=2607h heißt unsichtbarer Cursor
             INT 10h
-            ;eventuell ändern und mit int 10h machen
+
             MOV AH, 09h
             MOV DX, OFFSET logo
             INT 21h
             RET
 printLogo   ENDP
 
-mausProc    PROC FAR
-            enter 0, 0
-            push ds             ;sicherheitshalber Datensegementregister sichern
-            push di
-            push ax             ;sichern wir auch, weil wir jetzt das Datensegment laden wollen
+mausProc    PROC FAR            ;Muss FAR sein, weil vom Interrupt vorgeschrieben!
+            enter 0, 0          ;erstellt den stack frame.
+                                ;0, 0 = push bp
+                                ;       mov bp, sp
             mov ax, video_seg
             mov es, ax          ;Bildschirmadresse laden
-            pop ax
 
             shr dx, 3           ;y-koord/8 (wir wollen unsere Zeilen in 8ter gruppen haben)
             imul dx, 160        ;um die Zeilenbyteadresse auszurechnen y-koord*160 (160 Bytes pro Zeile)
+
             shr cx, 3           ;x-koord/8
             shl cx, 1           ;x-koord*2 (damit wir eine wortadresse bekommen)
-                                ;cx ist nun eine byteadresse auf den Bildschirm
-            add cx, dx
-            mov di, cx
+
+            add cx, dx          ;in cx steht jetzt unsere bildschirmposition hier
+            mov di, cx          ;weil wir nicht direkt cx benutzen können (Illegal indexing mode)
 
             ;da der Assembler nicht weiß, ob es sich um ein Byte oder Word handelt müssen wir es ihm sagen
-            ;0FDBh = Block zeichnen
-            mov WORD PTR es:[di], '#'   ;das was wir auf den bildschirm schreiben
-            pop di
-            pop ds
-            leave
+            mov WORD PTR es:[di], 1h   ;1h = das was wir auf den bildschirm schreiben
+
+            leave               ;Zerstört den stack frame
+                                ;mov sp, bp
+                                ;pop bp
             ret
 mausProc    ENDP
 
 difficulty  PROC
-            ;EASY
-            mov ah, 02h
-            mov dl, 28
-            mov dh, 16
-            int 10h
-
-            mov ah, 09h
-            mov bh, 0h
-            mov cx, 1
-            mov bl, 00000111b
-            mov al, '0'
-            int 10h
-
-            ;NORMAL
-            mov ah, 02h
-            mov dl, 44
-            mov dh, 16
-            int 10h
-
-            mov ah, 09h
-            mov bh, 0h
-            mov cx, 1
-            mov bl, 00000111b
-            mov al, '0'
-            int 10h
-
-            ;HARD
-            mov ah, 02h
-            mov dl, 58
-            mov dh, 16
-            int 10h
-
-            mov ah, 09h
-            mov bh, 0h
-            mov cx, 1
-            mov bl, 00000111b
-            mov al, '0'
-            int 10h
-
+            mov ax, 0Ch         ;Set Mouse User Defined Subroutine and Input Mask
+            push cs             ;wir benötigen ES:DX = far pointer to user interrupt, dazu pushen wir CS
+            pop es              ;und laden es in ES
             mov cx, 1111110b    ;wir reagieren jetzt auf alle tastenoptionen der maus
-            push cs
-            pop es
             mov dx, OFFSET mausProc ;wir laden die Adresse von mausProc
-            mov ax, 0Ch
             int 33h             ;Maus Interrupt
-            mov ax, 1           ;Cursor anschalten
-            int 33h             ;nochmal Interrupt
-logoLoop:
-            xor ah, ah
 
-            ;HARD
+            mov ax, 1           ;Zeige Mauszeiger
+            int 33h
+
+logoLoop:   ;HARD
             mov ah, 02h
             mov dl, 58
             mov dh, 16
@@ -103,7 +62,7 @@ logoLoop:
             MOV BH, 0h
             INT 10h
 
-            cmp al, 23h
+            cmp al, 1h
             je hardConfig
 
             ;NORMAL
@@ -117,8 +76,8 @@ logoLoop:
             MOV BH, 0h
             INT 10h
 
-            cmp al, 23h
-            je normalConfig
+            cmp al, 1h
+            je normConfig
 
             ;EASY
             mov ah, 02h
@@ -131,28 +90,28 @@ logoLoop:
             MOV BH, 0h
             INT 10h
 
-            cmp al, 23h
+            cmp al, 1h
             je easyConfig
             jmp logoLoop
-easyConfig:
-            MOV counter, 4
+
+easyConfig: MOV counter, 4
             MOV speed, 4
             MOV mode, 1         ;Easy
             JMP endStart
-normalConfig:
-            MOV counter, 3
+
+normConfig: MOV counter, 3
             MOV speed, 3
             MOV mode, 2         ;Normal
             JMP endStart
-hardConfig:
-            MOV counter, 2
+
+hardConfig: MOV counter, 2
             MOV speed, 2
             MOV mode, 3         ;Hard
-endStart:
-            mov ax, 0           ;Reset Maus
+
+endStart:   mov ax, 0           ;Reset Maus
             int 33h
-            mov ax, 3
-            int 10h             ;Zeichenbildschirm löschen
+            mov ax, 3           ;Zeichenbildschirm löschen
+            int 10h
             RET
 difficulty  ENDP
 
@@ -172,8 +131,8 @@ printFrame  PROC                ;Prozedur zum Zeichnen des Rahmens
             INT 10h             ;Zeichen schreiben
 
             MOV DH, 1h          ;y Position (2te zeile)
-linkeSeite:                     ;Zeichnet den linken Rand
-            MOV AH, 02h
+;Zeichnet den linken Rand
+linkeSeite: MOV AH, 02h
             MOV DL, 0h          ;Position 0,1 (DL = x, DH = y)
             MOV BH, 0h
             INT 10h
@@ -257,8 +216,8 @@ printPoints PROC                ;Prozedur um die Punktzahl mit Potenzzerlegung z
             CMP AL, 9
             JG zehner           ;Wenn über 10 JMP zu Zehner-Potenzzerlegung
             JMP printEiner
-zehner:
-            XOR BL, BL
+
+zehner:     XOR BL, BL
             MOV BL, 0Ah         ;=> 10
             DIV BL              ;AX/BL. Schreibt das Ergebnis in AL und den Rest in AH
 
@@ -279,8 +238,8 @@ printZehner:
 
             MOV AL, divrest     ;in AL den Rest der Division schieben
             INC DL
-printEiner:
-            ADD AL, '0'
+
+printEiner: ADD AL, '0'
 
             MOV AH, 02h
             MOV DH, 23
@@ -298,9 +257,9 @@ printPoints ENDP
 printSnake  PROC                ;Prozedur um die Schlange zu printen
                                 ;Setzt den Cursor an snakeX[DI] und snakeY[DI] und gibt dort ein '+' aus
             CALL printPoints    ;Prozedur um die Punktzahl zu printen
-            MOV DI, 0h          ;int x = 0, DI (destination index) wird hier als Zeiger genommen
-printLoop:                      ;Schleife um alle Einträge des snakeX und snakeY Arrays durchzugehen
-            MOV AH, 02h
+            XOR DI, DI         ;int x = 0, DI (destination index) wird hier als Zeiger genommen
+;Schleife um alle Einträge des snakeX und snakeY Arrays durchzugehen
+printLoop:  MOV AH, 02h
             MOV DL, snakeX[DI]
             MOV DH, snakeY[DI]
             MOV BH, 0h
@@ -317,8 +276,8 @@ printLoop:                      ;Schleife um alle Einträge des snakeX und snake
             JE endPrint
             INC DI
             JMP printLoop
-endPrint:
-            XOR DI, DI
+
+endPrint:   XOR DI, DI
             RET
 printSnake  ENDP
 
@@ -343,9 +302,9 @@ deleteTail  ENDP
 resetSnake  PROC                ;Prozedur, um den body der Schlange anzupassen (so sieht es aus als würde sie sich bewegen)
             XOR CX, CX
             XOR DI, DI
-resetLoop:                      ;Die Werte des Arrays werden "durchgereicht", also der Wert an Indexstelle 0
-                                ;bekommt den Wert an Indexstelle 1 . Dieser bekommt wiederrum den an Indexstelle 2 usw.
-            MOV CL, snakeX[DI+1]
+;Die Werte des Arrays werden "durchgereicht", also der Wert an Indexstelle 0
+;bekommt den Wert an Indexstelle 1 . Dieser bekommt wiederrum den an Indexstelle 2 usw.
+resetLoop:  MOV CL, snakeX[DI+1]
             MOV CH, snakeY[DI+1]
             MOV snakeX[DI], CL
             MOV snakeY[DI], CH
@@ -391,11 +350,11 @@ randomDL    PROC                ;Prozedur um eine Randomzahl für DL zu erzeugen
 
             CMP DL, 0h
             JE istNull
-            JMP randomDLend
-istNull:                        ;Damit wir keine 0 bekommen
-            INC DL
-randomDLend:
-            XOR AX, AX
+            JMP endRandDL
+
+istNull:    INC DL              ;Damit wir keine 0 bekommen
+
+endRandDL:  XOR AX, AX
             XOR BX, BX
             MOV AL, DL
             MOV BL, 8
@@ -414,11 +373,11 @@ randomDH    PROC                ;Prozedur um eine Randomzahl für DH zu erzeugen
             DIV CX              ;weil wir nur die Ganzzahl brauchen
             CMP DL, 0h
             JE istNull2         ;Analog zu oben
-            JMP randomDHend
-istNull2:
-            INC DL
-randomDHend:
-            XOR AX, AX
+            JMP endRandDH
+
+istNull2:   INC DL
+
+endRandDH:  XOR AX, AX
             XOR BX, BX
             MOV AL, DL
             MOV BL, 2
@@ -440,14 +399,14 @@ futterStart:
             INT 10h             ;Zuerst Zeichen an der Stelle lesen denn
 
             CMP AL, '+'         ;man muss sicherstellen, das das Futter nicht an der Stelle eines Schlangenkoerperteils spawnen kann
-            JE unterSchlange    ;falls es doch so ist
-            JMP futterEnd
-unterSchlange:
-            CALL randomDL       ;neuer Randomwert für DL
+            JE unterSnake       ;falls es doch so ist
+            JMP endFutter
+
+unterSnake: CALL randomDL       ;neuer Randomwert für DL
             CALL randomDH       ;neuer Randomwert für DH
             JMP futterStart
-futterEnd:
-            MOV AH, 09h
+
+endFutter:  MOV AH, 09h
             MOV BH, 0h
             MOV AL, 0FEh        ;Zeichen: "black square"
             MOV CX, 1
@@ -456,7 +415,7 @@ futterEnd:
             RET
 printFutter ENDP
 
-checkScore  PROC
+checkScore  PROC                ;Prozedur um zu gucken ob der Punktestand zum Gewinnen erreicht wurde
             cmp mode, 1         ;Easy
             je easyMode
             cmp mode, 2         ;normal
@@ -464,17 +423,17 @@ checkScore  PROC
             cmp mode, 3         ;normal
             je hardMode
             jmp endscore
-easyMode:
-            cmp score, 30
+
+easyMode:   cmp score, 30
             je ende
-normalMode:
-            cmp score, 45
+
+normalMode: cmp score, 45
             je ende
-hardMode:
-            cmp score, 60
+
+hardMode:   cmp score, 60
             je ende
-endScore:
-            RET
+
+endScore:   RET
 checkScore  ENDP
 
 checkFood   PROC                ;Prozedur um zu sehen ob der Kopf der Schlange mit der Position des Futters uebereinstimmt
@@ -484,14 +443,14 @@ checkFood   PROC                ;Prozedur um zu sehen ob der Kopf der Schlange m
             MOV DL, randomX
             MOV DH, randomY
             CMP snakeX[DI], DL
-            JE xstimmt
+            JE xstimmt          ;Wenn x Position vom Kopf der Schlange mit der x Position des Futters uebereinstimmt
             JMP endCheck
-xstimmt:                        ;Wenn x Position vom Kopf der Schlange mit der x Position des Futters uebereinstimmt
-            CMP snakeY[DI], DH
-            JE ystimmt
+
+xstimmt:    CMP snakeY[DI], DH
+            JE ystimmt           ;Wenn x und y Positionen vom Kopf der Schlange mit den x und y Positionen des Futters uebereinstimmen
             JMP endCheck
-ystimmt:                        ;Wenn x und y Positionen vom Kopf der Schlange mit den x und y Positionen des Futters uebereinstimmen
-            ADD DL, BL
+
+ystimmt:    ADD DL, BL
             ADD DH, BH          ;Einzeln, weil es ansonsten Probleme gab (keine ahnung wieso)
             MOV snakeX[DI+1], DL
             MOV snakeY[DI+1], DH
@@ -503,19 +462,18 @@ ystimmt:                        ;Wenn x und y Positionen vom Kopf der Schlange m
             CALL randomDH
             CALL printFutter
             JMP calls           ;Damit die Schlange nicht 2 Pixel springt muss ich early raus (siehe Erklaerung)
-endCheck:
-            XOR DI, DI
+
+endCheck:   XOR DI, DI
             RET
 checkFood   ENDP
 
 speedDec    PROC                ;Prozedur um die speed Variable zu Dekrementieren
-            cmp score, 5
+            cmp score, 40
             je firstDec
             jmp endSpeed
-firstDec:
-            DEC speed
-endSpeed:
-            RET
+
+firstDec:   DEC speed
+endSpeed:   RET
 speedDec    ENDP
 
 endscreen   PROC                ;Endroutine
@@ -528,26 +486,27 @@ endscreen   PROC                ;Endroutine
             cmp mode, 1         ;Easy
             je easyWinCon
             cmp mode, 2         ;normal
-            je normalWinCon
+            je normWinCon
             cmp mode, 3         ;normal
             je hardWinCon
             jmp ausgabe
-easyWinCon:
-            CMP score, 30
+
+easyWinCon: CMP score, 30
             JE winScreen        ;Falls man 50 Punkte erreicht kommt der "win"-String
-            jmp goodbye
-normalWinCon:
-            CMP score, 45
+            jmp ausgabe
+
+normWinCon: CMP score, 45
             JE winScreen        ;Falls man 50 Punkte erreicht kommt der "win"-String
-            jmp goodbye
-hardWinCon:
-            CMP score, 60
+            jmp ausgabe
+
+hardWinCon: CMP score, 60
             JE winScreen        ;Falls man 50 Punkte erreicht kommt der "win"-String
-winScreen:
-            MOV DX, OFFSET win
-ausgabe:
-            MOV AH, 09h
+            jmp ausgabe
+
+winScreen:  MOV DX, OFFSET win
+
+ausgabe:    MOV AH, 09h
             INT 21h
-goodbye:
-            RET
+
+goodbye:    RET
 endscreen   ENDP
