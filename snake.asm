@@ -209,8 +209,8 @@ escape:     MOV AH, 00h
             INT 10h             ;Bildschirm Loeschen
             MOV AH, 4Ch         ;Zurueck zu DOS
             INT 21h
-calls:                          ;CALLs die am Ende (egal ob gedrueckter Button oder nicht) gebraucht werden ausgelaggert in ein Label
-            CALL collision
+;CALLs die am Ende (egal ob gedrueckter Button oder nicht) gebraucht werden ausgelaggert in ein Label
+calls:      CALL collision
             CALL printSnake
             CALL deleteTail
             cmp score, 100      ;weil es ansonsten irgendwann die Zero Flag setzt

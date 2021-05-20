@@ -1,4 +1,4 @@
-printLogo   PROC
+printLogo   PROC                    ;Prozedur zum Printen des Logos
             MOV AH, 02h             ;BH = page number, DH = row, DL = column
             MOV DL, 0
             MOV DH, 1               ;Position 0,0 (DL = x, DH = y)
@@ -16,9 +16,6 @@ printLogo   PROC
 printLogo   ENDP
 
 mausProc    PROC FAR            ;Muss FAR sein, weil vom Interrupt vorgeschrieben!
-            ENTER 0, 0          ;erstellt im stack einen neuen stack bereich.
-                                ;0, 0 = push bp (base pointer) is typically used to point at some place in the stack
-                                ;       mov bp, sp (stack pointer) points at the top of the stack
             MOV AX, video_seg
             MOV ES, AX          ;Bildschirmadresse laden
 
@@ -36,10 +33,6 @@ mausProc    PROC FAR            ;Muss FAR sein, weil vom Interrupt vorgeschriebe
 
             ;da der Assembler nicht weiß, ob es sich um ein Byte oder Word handelt müssen wir es ihm sagen
             MOV WORD PTR ES:[DI], 1h ;1h = das was wir auf den bildschirm schreiben
-
-            LEAVE               ;Zerstört den oben erstellten stack bereich
-                                ;MOV sp, bp
-                                ;pop bp
             RET
 mausProc    ENDP
 
@@ -376,9 +369,13 @@ randomDH    PROC                ;Prozedur um eine Randomzahl für DH zu erzeugen
             DIV CX              ;weil wir nur die Ganzzahl brauchen
             CMP DL, 0h
             JE istNull2         ;Analog zu oben
+            CMP DL, 1h
+            JE istEins          ;Analog zu oben
             JMP endRandDH
 
 istNull2:   INC DL
+
+istEins:    INC DL
 
 endRandDH:  XOR AX, AX
             XOR BX, BX
