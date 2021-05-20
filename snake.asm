@@ -12,8 +12,7 @@
 ;==============================================================================
             .MODEL SMALL
             .486              ;Prozessortyp
-            esc_code    = 1Bh
-            video_seg   = 0B800h
+video_seg   = 0B800h          ;Adresse der VGA Grafikkarte fuer den Textmodus
             .DATA
 ;***************************** DATASEGMENT ************************************
 ;Schlangen-Array

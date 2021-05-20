@@ -16,83 +16,86 @@ printLogo   PROC
 printLogo   ENDP
 
 mausProc    PROC FAR            ;Muss FAR sein, weil vom Interrupt vorgeschrieben!
-            enter 0, 0          ;erstellt den stack frame.
-                                ;0, 0 = push bp
-                                ;       mov bp, sp
-            mov ax, video_seg
-            mov es, ax          ;Bildschirmadresse laden
+            ENTER 0, 0          ;erstellt im stack einen neuen stack bereich.
+                                ;0, 0 = push bp (base pointer) is typically used to point at some place in the stack
+                                ;       mov bp, sp (stack pointer) points at the top of the stack
+            MOV AX, video_seg
+            MOV ES, AX          ;Bildschirmadresse laden
 
-            shr dx, 3           ;y-koord/8 (wir wollen unsere Zeilen in 8ter gruppen haben)
-            imul dx, 160        ;um die Zeilenbyteadresse auszurechnen y-koord*160 (160 Bytes pro Zeile)
+            ;DX vertical cursor position
+            SHR DX, 3           ;y-koord/8, weil wir nicht mit den Pixeln arbeiten wollen, sondern mit den Blöcken im Videomodus
+            ;----nochmal nachfragen
+            IMUL DX, 160        ;Vorzeichenbehaftete Multiplikation, um die Zeilenbyteadresse auszurechnen y-koord*160 (160 Bytes pro Zeile)
 
-            shr cx, 3           ;x-koord/8
-            shl cx, 1           ;x-koord*2 (damit wir eine wortadresse bekommen)
+            ;CX = horizontal cursor position
+            SHR CX, 3           ;x-koord/8
+            SHL CX, 1           ;x-koord*2 (damit wir eine wortadresse bekommen)
 
-            add cx, dx          ;in cx steht jetzt unsere bildschirmposition hier
-            mov di, cx          ;weil wir nicht direkt cx benutzen können (Illegal indexing mode)
+            ADD CX, DX          ;in CX steht jetzt unsere bildschirmposition hier
+            MOV DI, CX          ;weil wir nicht direkt CX benutzen können (Illegal indexing mode)
 
             ;da der Assembler nicht weiß, ob es sich um ein Byte oder Word handelt müssen wir es ihm sagen
-            mov WORD PTR es:[di], 1h   ;1h = das was wir auf den bildschirm schreiben
+            MOV WORD PTR ES:[DI], 1h ;1h = das was wir auf den bildschirm schreiben
 
-            leave               ;Zerstört den stack frame
-                                ;mov sp, bp
+            LEAVE               ;Zerstört den oben erstellten stack bereich
+                                ;MOV sp, bp
                                 ;pop bp
-            ret
+            RET
 mausProc    ENDP
 
 difficulty  PROC
-            mov ax, 0Ch         ;Set Mouse User Defined Subroutine and Input Mask
-            push cs             ;wir benötigen ES:DX = far pointer to user interrupt, dazu pushen wir CS
-            pop es              ;und laden es in ES
-            mov cx, 1111110b    ;wir reagieren jetzt auf alle tastenoptionen der maus
-            mov dx, OFFSET mausProc ;wir laden die Adresse von mausProc
-            int 33h             ;Maus Interrupt
+            MOV AX, 0Ch         ;Set Mouse User Defined Subroutine and Input Mask
+            PUSH CS             ;wir benötigen ES:DX = far pointer to user interrupt, dazu pushen wir CS
+            POP ES              ;und laden es in ES
+            MOV CX, 1111110b    ;wir reagieren jetzt auf alle tastenoptionen der maus
+            MOV DX, OFFSET mausProc ;wir laden die Adresse von mausProc
+            INT 33h             ;Maus Interrupt
 
-            mov ax, 1           ;Zeige Mauszeiger
-            int 33h
+            MOV AX, 1           ;Zeige Mauszeiger
+            INT 33h
 
 logoLoop:   ;HARD
-            mov ah, 02h
-            mov dl, 58
-            mov dh, 16
-            int 10h
+            MOV AH, 02h
+            MOV DL, 58
+            MOV DH, 16
+            INT 10h
 
             MOV AH, 08h         ;Lese Zeichen und Attribut an der Cursorposition.
                                 ;-> AH = 08h, BH = page number, AH = Farbwert, AL = Zeichen
             MOV BH, 0h
             INT 10h
 
-            cmp al, 1h
-            je hardConfig
+            CMP AL, 1h
+            JE hardConfig
 
             ;NORMAL
-            mov ah, 02h
-            mov dl, 44
-            mov dh, 16
-            int 10h
+            MOV AH, 02h
+            MOV DL, 44
+            MOV DH, 16
+            INT 10h
 
             MOV AH, 08h         ;Lese Zeichen und Attribut an der Cursorposition.
                                 ;-> AH = 08h, BH = page number, AH = Farbwert, AL = Zeichen
             MOV BH, 0h
             INT 10h
 
-            cmp al, 1h
-            je normConfig
+            CMP AL, 1h
+            JE normConfig
 
             ;EASY
-            mov ah, 02h
-            mov dl, 28
-            mov dh, 16
-            int 10h
+            MOV AH, 02h
+            MOV DL, 28
+            MOV DH, 16
+            INT 10h
 
             MOV AH, 08h         ;Lese Zeichen und Attribut an der Cursorposition.
                                 ;-> AH = 08h, BH = page number, AH = Farbwert, AL = Zeichen
             MOV BH, 0h
             INT 10h
 
-            cmp al, 1h
-            je easyConfig
-            jmp logoLoop
+            CMP AL, 1h
+            JE easyConfig
+            JMP logoLoop
 
 easyConfig: MOV counter, 4
             MOV speed, 4
@@ -108,10 +111,10 @@ hardConfig: MOV counter, 2
             MOV speed, 2
             MOV mode, 3         ;Hard
 
-endStart:   mov ax, 0           ;Reset Maus
-            int 33h
-            mov ax, 3           ;Zeichenbildschirm löschen
-            int 10h
+endStart:   MOV AX, 0           ;Reset Maus
+            INT 33h
+            MOV AX, 3           ;Zeichenbildschirm löschen
+            INT 10h
             RET
 difficulty  ENDP
 
@@ -417,21 +420,21 @@ printFutter ENDP
 
 checkScore  PROC                ;Prozedur um zu gucken ob der Punktestand zum Gewinnen erreicht wurde
             cmp mode, 1         ;Easy
-            je easyMode
+            JE easyMode
             cmp mode, 2         ;normal
-            je normalMode
+            JE normalMode
             cmp mode, 3         ;normal
-            je hardMode
-            jmp endscore
+            JE hardMode
+            JMP endscore
 
 easyMode:   cmp score, 30
-            je ende
+            JE ende
 
 normalMode: cmp score, 45
-            je ende
+            JE ende
 
 hardMode:   cmp score, 60
-            je ende
+            JE ende
 
 endScore:   RET
 checkScore  ENDP
@@ -468,9 +471,9 @@ endCheck:   XOR DI, DI
 checkFood   ENDP
 
 speedDec    PROC                ;Prozedur um die speed Variable zu Dekrementieren
-            cmp score, 40
-            je firstDec
-            jmp endSpeed
+            CMP score, 40
+            JE firstDec
+            JMP endSpeed
 
 firstDec:   DEC speed
 endSpeed:   RET
@@ -484,29 +487,28 @@ endscreen   PROC                ;Endroutine
             MOV DX, OFFSET lose ;Standartmaessig ist der "lose"-String ausgewaehlt
 
             cmp mode, 1         ;Easy
-            je easyWinCon
+            JE easyWinCon
             cmp mode, 2         ;normal
-            je normWinCon
+            JE normWinCon
             cmp mode, 3         ;normal
-            je hardWinCon
-            jmp ausgabe
+            JE hardWinCon
+            JMP ausgabe
 
 easyWinCon: CMP score, 30
             JE winScreen        ;Falls man 50 Punkte erreicht kommt der "win"-String
-            jmp ausgabe
+            JMP ausgabe
 
 normWinCon: CMP score, 45
             JE winScreen        ;Falls man 50 Punkte erreicht kommt der "win"-String
-            jmp ausgabe
+            JMP ausgabe
 
 hardWinCon: CMP score, 60
             JE winScreen        ;Falls man 50 Punkte erreicht kommt der "win"-String
-            jmp ausgabe
+            JMP ausgabe
 
 winScreen:  MOV DX, OFFSET win
 
 ausgabe:    MOV AH, 09h
             INT 21h
-
-goodbye:    RET
+            RET
 endscreen   ENDP
