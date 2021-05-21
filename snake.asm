@@ -5,7 +5,7 @@
 ;Prinzip:
 ;Zuerst waehlt man einen Schwierigkeitsgrad:
 ;    easy (mode = 1):
-;            -speed = 4
+;            - speed = 4
 ;            - man muss 30 Punkte erreichen
 ;    normal (mode = 2):
 ;            - speed = 3
@@ -30,14 +30,13 @@ video_seg   = 0B800h          ;Adresse der VGA Grafikkarte fuer den Textmodus
             .DATA
 ;***************************** DATASEGMENT ************************************
 ;Schlangen-Array
-snakeX      DB  5,  6,  7,  8, 60 dup(0) ;"60 Duplikate von 0", die ersten 4 Indexe haben Werte fuer die positionen,
-                                         ;wo die Schlange starten soll, der Rest ist 0
-snakeY      DB 10, 10, 10, 10, 60 dup(0) ;60 weil man bei 50 punkten gewinnt
+snakeX      DB  5,  6,  7,  8, 60 dup(0) ;"60 Duplikate von 0", die ersten 4 Indexe haben Werte fuer die Positionen, wo die Schlange starten soll, der Rest ist 0
+snakeY      DB 10, 10, 10, 10, 60 dup(0)
 snakeSize   DW 3                         ;Gibt an wie lang die Schlange ist
 
 ;Scorevariablen
 score       DB 0
-divrest     DB 0
+divrest     DB ?
 
 ;Bewegungsvariable
 movflag     DB 4                ;Standartmaessig bewegt sich die Schlange nach rechts
@@ -66,7 +65,7 @@ ISR1Ch:     PUSH DS             ;Alle Register die in einer ISR benutzt werden m
             POP DS
             IRET
 
-start:      MOV AX, @DATA       ;Adresse des Datensegments in das Register „AX“ laden
+beginn:     MOV AX, @DATA       ;Adresse des Datensegments in das Register „AX“ laden
             MOV DS, AX          ;In das Segmentregister „DS“ uebertragen
                                 ;(das DS-Register kann nicht direkt mit einer Konstante beschrieben werden)
             MOV AL, 1Ch
@@ -90,15 +89,15 @@ start:      MOV AX, @DATA       ;Adresse des Datensegments in das Register „AX
             POP DS              ;Datensegment, dahin wo es hingehoert
 
             MOV AH, 00h
-            MOV AL, 03h         ;Videomodus3 -> 640x200 Pixel mit 16 Farben (in 80x25 Bloecken)
+            MOV AL, 3           ;Videomodus3 -> 640x200 Pixel mit 16 Farben (in 80x25 Bloecken)
             INT 10h             ;Zeichenbildschirm einstellen
 
             CALL printLogo
             CALL difficulty
 
-            MOV AH, 01h         ;Cursorform einstellen
+            MOV AH, 01h
             MOV CX, 2607h       ;CX=2607h heißt unsichtbarer Cursor
-            INT 10h
+            INT 10h             ;Cursorform einstellen
 
             CALL printFrame     ;Aufruf der Prozedur zum Zeichnen des Rahmens
             CALL printScore     ;Aufruf der Prozedur um "Score" zu printen
@@ -108,23 +107,23 @@ start:      MOV AX, @DATA       ;Adresse des Datensegments in das Register „AX
             CALL randomDH       ;Aufruf der Prozedur um eine Randomzahl für DL zu erzeugen
             CALL printFutter    ;Aufruf der Prozedur um an Randompositionen Futter zu erzeugen
 
-warte:      MOV AH, 0Ch         ;Tastaturbuffer leeren, damit sich schnelle Eingaben nicht stappeln (aus dem Ulbricht Video)
-            MOV AL, 0h
-            INT 21h
+waitForKey: MOV AH, 0Ch
+            MOV AL, 0
+            INT 21h             ;Tastaturbuffer leeren, damit sich schnelle Eingaben nicht stappeln (aus dem Ulbricht Video)
 
             XOR BX, BX
             MOV BX, speed
             MOV counter, bx
 
-warteLoop:  CMP counter, 0
-            JNE warteLoop       ;Warten bis der Interrupt den counter runtergezaehlt hat
+waitLoop:   CMP counter, 0
+            JNE waitLoop        ;Warten bis der Interrupt den counter runtergezaehlt hat
 
-            MOV AH, 01h         ;Keyboard Status ohne Abholung des Zeichens (von Ihnen)
-            INT 16h             ;ZF = 1: kein wartendes Zeichen. ZF = 0: ein Zeichen steht zur Abholung bereit.
+            MOV AH, 01h         ;ZF = 1: kein wartendes Zeichen. ZF = 0: ein Zeichen steht zur Abholung bereit.
+            INT 16h             ;Keyboard Status ohne Abholung des Zeichens (von Ihnen) ;
             JZ nobutton         ;JMP if ZF gesetzt (ZF = 1).
 
-compare:    MOV AH, 00h         ;Liest das letzte Zeichen aus den Tastaturbuffer aus und speichert es in AL
-            INT 16h
+            MOV AH, 00h
+            INT 16h             ;Liest das letzte Zeichen aus den Tastaturbuffer aus und speichert es in AL
 
             CMP AL, 77h         ;W
             JE up
@@ -218,19 +217,20 @@ moveRight   PROC
 moveRight   ENDP
 
 escape:     MOV AH, 00h
-            MOV AL, 3h
+            MOV AL, 3
             INT 10h             ;Bildschirm Loeschen
-            MOV AH, 4Ch         ;Zurueck zu DOS
-            INT 21h
+
+            MOV AH, 4Ch
+            INT 21h             ;Zurueck zu DOS
 ;CALLs die am Ende (egal ob gedrueckter Button oder nicht) gebraucht werden ausgelaggert in ein Label
 calls:      CALL collision
             CALL printSnake
             CALL deleteTail
-            CMP score, 100      ;weil es ansonsten irgendwann die Zero Flag setzt (da nochmal testen)
-            JMP warte           ;Zurueck zur Endlosschleife
+            CMP score, 100      ;Weil es ansonsten irgendwann die Zero Flag setzt (seltsamer Bug)
+            JMP waitForKey      ;Zurueck zur Endlosschleife
 
 ende:       CALL endscreen
-            MOV AH, 4Ch         ;Zurueck zu DOS
-            INT 21h
-            .STACK 100h
-            end start
+            MOV AH, 4Ch
+            INT 21h             ;Zurueck zu DOS
+            .STACK 100h         ;Wo wir auf den Stack starten wollen
+            end beginn

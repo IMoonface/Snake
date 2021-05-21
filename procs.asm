@@ -1,13 +1,13 @@
 printLogo   PROC                ;Prozedur zum Printen des Logos
-            MOV AH, 02h         ;BH = page number, DH = row, DL = column
+            MOV AH, 02h         ;BH = Seitennummer, DL = Spalte, DH = Zeile
+            MOV BH, 0
             MOV DL, 0
-            MOV DH, 1           ;Position 0,0 (DL = x, DH = y)
-            MOV BH, 0h
+            MOV DH, 1           ;Position 0,1 (DL = x, DH = y)
             INT 10h             ;Cursor setzen
 
-            MOV AH, 01h         ;Cursorform einstellen
+            MOV AH, 01h
             MOV CX, 2607h       ;CX=2607h heißt unsichtbarer Cursor
-            INT 10h
+            INT 10h             ;Cursorform einstellen
 
             MOV AH, 09h
             MOV DX, OFFSET logo
@@ -19,71 +19,71 @@ mausProc    PROC FAR            ;Muss FAR sein, weil vom Interrupt vorgeschriebe
             MOV AX, video_seg
             MOV ES, AX          ;Bildschirmadresse laden
 
-                                ;DX vertical cursor position
-            SHR DX, 3           ;y-koord/8, weil wir nicht mit den Pixeln arbeiten wollen, sondern mit den Blöcken im Videomodus
-            IMUL DX, 160        ;Vorzeichenbehaftete Multiplikation, um die Zeilenbyteadresse auszurechnen y-koord*160 (160 Bytes pro Zeile)
+                                ;DX = vertical cursor position
+            SHR DX, 3           ;Y-Koord/8, weil wir nicht mit den Pixeln arbeiten wollen, sondern mit den Blöcken im Videomodus
+            IMUL DX, 160        ;Vorzeichenbehaftete Multiplikation, um die Zeilenbyteadresse auszurechnen y-koord*160 (Siehe Erklaerung)
 
                                 ;CX = horizontal cursor position
-            SHR CX, 3           ;x-koord/8
-            SHL CX, 1           ;x-koord*2 (damit wir eine wortadresse bekommen)
+            SHR CX, 3           ;X-Koord/8
+            SHL CX, 1           ;X-Koord*2, denn ein Block ist ja 2 Bytes lang
 
-            ADD CX, DX          ;in CX steht jetzt unsere bildschirmposition hier
-            MOV DI, CX          ;weil wir nicht direkt CX benutzen können (Illegal indexing mode)
+            ADD CX, DX          ;In CX steht jetzt unsere Bildschirmposition
+            MOV DI, CX          ;Umweg mit DI, weil wir nicht direkt CX benutzen können (Illegal indexing mode)
 
-            ;da der Assembler nicht weiß, ob es sich um ein Byte oder Word handelt müssen wir es ihm sagen
-            MOV WORD PTR ES:[DI], 1h ;1h = das was wir auf den bildschirm schreiben
-            RET
+                                ;Da der Assembler nicht weiß, ob es sich um ein Byte oder Word handelt muessen wir es ihm sagen
+            MOV WORD PTR ES:[DI], 1h ;1h = das was wir auf den Bildschirm schreiben
+            RET                 ;Zum zurueckspringen
 mausProc    ENDP
 
 difficulty  PROC
-            MOV AX, 0Ch         ;Set Mouse User Defined Subroutine and Input Mask
-            PUSH CS             ;wir benötigen ES:DX = far pointer to user interrupt, dazu pushen wir CS
+            MOV AX, 0Ch         ;Benutzerdefinierte Unterroutine und Eingabemaske für die Maus festlegen
+            PUSH CS             ;Wir benoetigen ES:DX = far pointer to user interrupt, dazu pushen wir CS
             POP ES              ;und laden es in ES
-            MOV CX, 1111110b    ;wir reagieren jetzt auf alle tastenoptionen der maus
-            MOV DX, OFFSET mausProc ;wir laden die Adresse von mausProc
+            MOV CX, 1111110b    ;Wir reagieren jetzt auf alle Tastenoptionen der Maus
+            MOV DX, OFFSET mausProc ;Wir laden die Adresse von mausProc
             INT 33h             ;Maus Interrupt
 
-            MOV AX, 1           ;Zeige Mauszeiger
+            MOV AX, 01h           ;Zeige Mauszeiger
             INT 33h
 
 logoLoop:   ;HARD
             MOV AH, 02h
+            MOV BH, 0
             MOV DL, 58
             MOV DH, 16
-            INT 10h
+            INT 10h             ;Cursor setzen
 
-            MOV AH, 08h         ;Lese Zeichen und Attribut an der Cursorposition.
-                                ;-> AH = 08h, BH = page number, AH = Farbwert, AL = Zeichen
-            MOV BH, 0h
-            INT 10h
+            MOV AH, 08h         ;-> AH = 08h, BH = Seitennummer, AH = Farbwert, AL = Zeichen
+            MOV BH, 0
+            INT 10h             ;Lese Zeichen und Attribut an der Cursorposition.
 
             CMP AL, 1h
             JE hardConfig
 
             ;NORMAL
             MOV AH, 02h
+            MOV BH, 0
             MOV DL, 44
             MOV DH, 16
-            INT 10h
+            INT 10h             ;Cursor setzen
 
-            MOV AH, 08h         ;Lese Zeichen und Attribut an der Cursorposition.
-                                ;-> AH = 08h, BH = page number, AH = Farbwert, AL = Zeichen
-            MOV BH, 0h
-            INT 10h
+            MOV AH, 08h
+            MOV BH, 0
+            INT 10h             ;Lese Zeichen und Attribut an der Cursorposition.
 
             CMP AL, 1h
             JE normConfig
 
             ;EASY
             MOV AH, 02h
+            MOV BH, 0
             MOV DL, 28
             MOV DH, 16
-            INT 10h
+            INT 10h             ;Cursor setzen
 
-            MOV AH, 08h         ;Lese Zeichen und Attribut an der Cursorposition.
-                                ;-> AH = 08h, BH = page number, AH = Farbwert, AL = Zeichen
-            MOV BH, 0h
-            INT 10h
+            MOV AH, 08h
+            MOV BH, 0
+            INT 10h             ;Lese Zeichen und Attribut an der Cursorposition.
 
             CMP AL, 1h
             JE easyConfig
@@ -103,202 +103,198 @@ hardConfig: MOV counter, 2
             MOV speed, 2
             MOV mode, 3         ;Hard
 
-endStart:   MOV AX, 0           ;Reset Maus
+endStart:   MOV AX, 0h         ;Reset Maus
             INT 33h
-            MOV AX, 3           ;Zeichenbildschirm löschen
+
+            MOV AH, 00h         ;Bildschirm Loeschen
+            MOV AL, 3
             INT 10h
             RET
 difficulty  ENDP
 
 printFrame  PROC                ;Prozedur zum Zeichnen des Rahmens
             ;Oberer Rand
-            MOV AH, 02h         ;BH = page number, DH = row, DL = column
-            MOV DL, 0h
-            MOV DH, 0h          ;Position 0,0 (DL = x, DH = y)
-            MOV BH, 0h
+            MOV AH, 02h
+            MOV BH, 0
+            MOV DL, 0
+            MOV DH, 0
             INT 10h             ;Cursor setzen
 
-            MOV AH, 09h         ;AL = character, BH = page number, BL = color,
-            MOV BH, 0h
+            MOV AH, 09h         ;AL = Zeichen, BH = Seitennummer, BL = Farbe, CX = Haeufigkeit, mit der Zeichen gedruckt werden
             MOV AL, 0DBh
-            MOV CX, 80          ;CX = Haeufigkeit, mit der Zeichen gedruckt werden
-            MOV BL, 00000111b
+            MOV BH, 0
+            MOV BL, 00000111b   ;Farbe: Weiss
+            MOV CX, 80
             INT 10h             ;Zeichen schreiben
 
-            MOV DH, 1h          ;y Position (2te zeile)
+            MOV DH, 1           ;y = 1
 ;Zeichnet den linken Rand
 linkeSeite: MOV AH, 02h
-            MOV DL, 0h          ;Position 0,1 (DL = x, DH = y)
-            MOV BH, 0h
-            INT 10h
+            MOV BH, 0
+            MOV DL, 0           ;Position 0,1 (DL = x, DH = y)
+            INT 10h             ;Cursor setzen
 
             MOV AH, 09h
-            MOV BH, 0h
-            MOV AL, 0DBh        ;Block als Attribut
+            MOV AL, 0DBh        ;0DBh = Block
+            MOV BH, 0
+            MOV BL, 00000111b
             MOV CX, 1
-            MOV BL, 00000111b   ;Farbe: Weiss
             INT 10h             ;Zeichen schreiben
 
             INC DH              ;Addiert auf das DH Register eine 1
             CMP DH, 24          ;Wir gehen 24 Zeilen runter
-            JNE linkeSeite      ;Falls nicht gleich weiter mit der linken Seite
+            JNE linkeSeite      ;Falls nicht equal -> Weiter mit der linken Seite
 rechteSeite:                    ;Zeichnet den rechten Rand
             MOV AH, 02h
-            MOV DL, 79          ;Position 0,79 (DL = x, DH = y)
-            MOV BH, 0h
-            INT 10h
+            MOV BH, 0
+            MOV DL, 79
+            INT 10h             ;Cursor setzen
 
             MOV AH, 09h
-            MOV BH, 0h
             MOV AL, 0DBh
+            MOV BH, 0
+            MOV BL, 00000111b
             MOV CX, 1
-            MOV BL, 00000111b   ;Farbe: Weiss
-            INT 10h
+            INT 10h             ;Zeichen schreiben
 
             INC DH
             CMP DH, 24
-            JNE rechteSeite     ;Falls nicht gleich weiter mit der rechten Seite
+            JNE rechteSeite     ;Falls nicht equal -> Weiter mit der rechten Seite
 
             ;Unterer Rand
             MOV AH, 02h
-            MOV DL, 0h
-            MOV DH, 22          ;Position 0,22 (DL = x, DH = y)
-            MOV BH, 0h
-            INT 10h
+            MOV BH, 0
+            MOV DL, 0
+            MOV DH, 22
+            INT 10h             ;Cursor setzen
 
             MOV AH, 09h
-            MOV BH, 0h
-            MOV AL, 0DBh        ;0 vor dem DBh wegen dem Hexwert
-            MOV CX, 80
+            MOV AL, 0DBh
+            MOV BH, 0
             MOV BL, 00000111b
-            INT 10h
+            MOV CX, 80
+            INT 10h             ;Zeichen schreiben
 
             ;Um eine kleine Gap zulassen für den "score"-String
             MOV AH, 02h
-            MOV DL, 0h
-            MOV DH, 24          ;Position 0,24 (DL = x, DH = y)
-            MOV BH, 0h
-            INT 10h
+            MOV BH, 0
+            MOV DL, 0
+            MOV DH, 24
+            INT 10h             ;Cursor setzen
 
             MOV AH, 09h
-            MOV BH, 0h
             MOV AL, 0DBh
-            MOV CX, 80
+            MOV BH, 0
             MOV BL, 00000111b
-            INT 10h
-            RET                 ;nicht vergessen
+            MOV CX, 80
+            INT 10h             ;Zeichen schreiben
+            RET
 printFrame  ENDP
 
 printScore  PROC                ;Prozedur um "Score" zu printen
             MOV AH, 02h
+            MOV BH, 0
             MOV DL, 35
-            MOV DH, 23          ;Position 0,23 (DL = x, DH = y)
-            MOV BH, 0h
-            INT 10h
+            MOV DH, 23
+            INT 10h             ;Cursor setzen
 
             MOV DX, OFFSET scoreString
             MOV AH, 09h
-            INT 21h             ;Zeichenkette darstellen (in DX muss der OFFSET des zeigers,
-                                ;der eine mit $ abgeschlossene Zeichenkette angibt drinstehen)
+            INT 21h             ;Zeichenkette darstellen (in DX muss der OFFSET des Zeigers, der eine mit $ abgeschlossene Zeichenkette angibt drinstehen)
             RET
 printScore  ENDP
 
-printPoints PROC                ;Prozedur um die Punktzahl mit Potenzzerlegung zu zerlegen, falls er zu groß wird um ihn auszugeben
+printPoints PROC                ;Prozedur um die Punktzahl mit Potenzzerlegung zu zerlegen, falls sie zu groß wird um sie auszugeben
             XOR AX, AX
             MOV AL, score
             MOV DL, 42
 
             CMP AL, 9
-            JG zehner           ;Wenn über 10 JMP zu Zehner-Potenzzerlegung
+            JG zehner           ;Wenn ueber 10 JMP zu Zehner-Potenzzerlegung
             JMP printEiner
 
 zehner:     XOR BL, BL
-            MOV BL, 0Ah         ;=> 10
+            MOV BL, 0Ah         ;0Ah = 10
             DIV BL              ;AX/BL. Schreibt das Ergebnis in AL und den Rest in AH
+            ADD AL, '0'         ;Addiert eine 48 (ASCII Wert fuer 0), um es als Zeichen darzustellen
 
-            ADD AL, '0'         ;Addiert eine 48 (ASCII Wert fuer 0, um es als Zeichen darzustellen)
-printZehner:
-            MOV divrest, AH     ;in divrest ist jetzt der Rest der Division
+            MOV divrest, AH     ;In divrest ist jetzt der Rest der Division
 
             MOV AH, 02h
+            MOV BH, 0
             MOV DH, 23
-            MOV BH, 0h
-            INT 10h
+            INT 10h             ;Cursor setzen
 
             MOV AH, 09h
-            MOV BH, 0h
-            MOV CX, 1
+            MOV BH, 0
             MOV BL, 00000111b
-            INT 10h
+            MOV CX, 1
+            INT 10h             ;Zeichen schreiben
 
-            MOV AL, divrest     ;in AL den Rest der Division schieben
-            INC DL
+            MOV AL, divrest     ;In AL den Rest der Division schieben
+            INC DL              ;x+1
 
 printEiner: ADD AL, '0'
-
             MOV AH, 02h
+            MOV BH, 0
             MOV DH, 23
-            MOV BH, 0h
-            INT 10h
+            INT 10h             ;Cursor setzen
 
             MOV AH, 09h
-            MOV BH, 0h
-            MOV CX, 1
+            MOV BH, 0
             MOV BL, 00000111b
-            INT 10h
+            MOV CX, 1
+            INT 10h             ;Zeichen schreiben
             RET
 printPoints ENDP
 
 printSnake  PROC                ;Prozedur um die Schlange zu printen
-                                ;Setzt den Cursor an snakeX[DI] und snakeY[DI] und gibt dort ein '+' aus
             CALL printPoints    ;Prozedur um die Punktzahl zu printen
-            XOR DI, DI          ;int x = 0, DI (destination index) wird hier als Zeiger genommen
+            XOR DI, DI          ;DI (destination index) wird hier als Zeiger genommen
 ;Schleife um alle Einträge des snakeX und snakeY Arrays durchzugehen
 printLoop:  MOV AH, 02h
+            MOV BH, 0
             MOV DL, snakeX[DI]
-            MOV DH, snakeY[DI]
-            MOV BH, 0h
+            MOV DH, snakeY[DI]  ;Setzt den Cursor an snakeX[DI] und snakeY[DI]
             INT 10h
 
             MOV AH, 09h
-            MOV BH, 0h
-            MOV AL, '+'
-            MOV CX, 1
+            MOV AL, '+'         ;und gibt dort ein '+' aus
+            MOV BH, 0
             MOV BL, 00101110b   ;Farbe Gelb und der Hintergrund Gruen
+            MOV CX, 1
             INT 10h
 
             CMP DI, snakeSize   ;Bis DI = snakeSize
             JE endPrint
-            INC DI
+            INC DI              ;DI hochzaehlen
             JMP printLoop
-
 endPrint:   XOR DI, DI
             RET
 printSnake  ENDP
 
-deleteTail  PROC                ;Prozedur um den Schwanz der Schlange zu loeschen, damit keine enDLose Spur hinter sich hergezogen wird
+deleteTail  PROC                ;Prozedur um den Schwanz der Schlange zu loeschen, damit keine endlose Spur hinter sich hergezogen wird
             XOR DI, DI
 
-            MOV AH, 2h
+            MOV AH, 02h
+            MOV BH, 0
             MOV DL, snakeX[DI]  ;Ersten Eintrag des snakeX-Arrays in DL speichern
             MOV DH, snakeY[DI]  ;Ersten Eintrag des snakeY-Arrays in DH speichern
-            MOV BH, 0h
-            INT 10h
+            INT 10h             ;Cursor setzen
 
             MOV AH, 09h
-            MOV BH, 0h
             MOV AL, 0DBh
-            MOV CX, 1
+            MOV BH, 0
             MOV BL, 00000000b   ;Farbe: Schwarz
-            INT 10h
+            MOV CX, 1
+            INT 10h             ;Zeichen schreiben
             RET
 deleteTail  ENDP
 
-resetSnake  PROC                ;Prozedur, um den body der Schlange anzupassen (so sieht es aus als würde sie sich bewegen)
+resetSnake  PROC                ;Prozedur, um den body der Schlange anzupassen (so sieht es aus als wuerde sie sich bewegen)
             XOR CX, CX
             XOR DI, DI
-;Die Werte des Arrays werden "durchgereicht", also der Wert an Indexstelle 0
-;bekommt den Wert an Indexstelle 1 . Dieser bekommt wiederrum den an Indexstelle 2 usw.
+;Die Werte des Arrays werden "durchgereicht", also der Wert an Indexstelle 0 bekommt den Wert an Indexstelle 1 . Dieser bekommt wiederrum den an Indexstelle 2 usw.
 resetLoop:  MOV CL, snakeX[DI+1]
             MOV CH, snakeY[DI+1]
             MOV snakeX[DI], CL
@@ -315,21 +311,18 @@ collision   PROC                ;Ueberpruefen ob sich die Schlange selber frisst
             XOR DX, DX
             MOV DI, snakeSize
 
+            MOV AH, 02h
+            MOV BH, 0
             MOV DL, snakeX[DI]
             MOV DH, snakeY[DI]
+            INT 10h             ;Cursor setzen
 
-            MOV AH, 02h         ;Setze Cursor Position. -> AH = 02h, BH = page number, DH = Zeile, DL = Spalte
-            MOV BH, 0h
-            INT 10h
-
-            MOV AH, 08h         ;Lese Zeichen und Attribut an der Cursorposition.
-                                ;-> AH = 08h, BH = page number, AH = Farbwert, AL = Zeichen
-            MOV BH, 0h
-            INT 10h
+            MOV AH, 08h
+            MOV BH, 0
+            INT 10h             ;Lese Zeichen und Attribut an der Cursorposition.
 
             CMP AL, '+'         ;Ueberpruefen ob das Zeichen an der Cursor Position ein Teil der Schlange ist
             JE ende
-            XOR DI, DI
             RET
 collision   ENDP
 
@@ -338,12 +331,12 @@ randomDL    PROC                ;Prozedur um eine Randomzahl für DL zu erzeugen
             MOV AH, 00h         ;Interrupt um die Systemzeit zu erhalten
             INT 1Ah             ;In CX:DX ist jetzt die Anzahl der clock ticks seit Mitternacht
 
-            MOV AX, DX
-            XOR DX, DX
-            MOV CX, 10
-            DIV CX              ;In DX steht dann der Rest der Division -> Range von 0..9
-
-            CMP DL, 0h
+            MOV AX, DX          ;DX in AX rein
+            XOR DX, DX          ;DX leeren
+            MOV CX, 10          ;CX bekommt die 10
+            DIV CX              ;AX/10 weil wir nur die Ganzzahl brauchen
+                                ;In DL steht jetzt das Ergebnis der Division
+            CMP DL, 0
             JE istNull
             JMP endRandDL
 
@@ -362,19 +355,19 @@ randomDH    PROC                ;Prozedur um eine Randomzahl für DH zu erzeugen
             MOV AH, 00h
             INT 1Ah
 
-            MOV AX, DX          ;DX in AX rein
-            XOR DX, DX          ;DX leeren
-            MOV CX, 10          ;CX bekommt die 10
-            DIV CX              ;weil wir nur die Ganzzahl brauchen
-            CMP DL, 0h
-            JE istNull2         ;Analog zu oben
-            CMP DL, 1h
-            JE istEins          ;Analog zu oben
+            MOV AX, DX
+            XOR DX, DX
+            MOV CX, 10
+            DIV CX
+            CMP DL, 0
+            JE istNull2         ;Selbe wie oben
+            CMP DL, 1
+            JE istEins
             JMP endRandDH
 
 istNull2:   INC DL
 
-istEins:    INC DL
+istEins:    INC DL              ;Damit wir keine 1 bekommen
 
 endRandDH:  XOR AX, AX
             XOR BX, BX
@@ -388,13 +381,13 @@ randomDH    ENDP
 printFutter PROC                ;Prozedur um an Randompositionen Futter zu erzeugen
 futterStart:
             MOV AH, 02h
+            MOV BH, 0
             MOV DL, randomX
             MOV DH, randomY
-            MOV BH, 0h
-            INT 10h             ;Futterpositionierung
+            INT 10h             ;Cursor setzen (Futterposition)
 
             MOV AH, 08h
-            MOV BH, 0h
+            MOV BH, 0
             INT 10h             ;Zuerst Zeichen an der Stelle lesen denn
 
             CMP AL, '+'         ;man muss sicherstellen, das das Futter nicht an der Stelle eines Schlangenkoerperteils spawnen kann
@@ -403,13 +396,13 @@ futterStart:
 
 unterSnake: CALL randomDL       ;neuer Randomwert für DL
             CALL randomDH       ;neuer Randomwert für DH
-            JMP futterStart
+            JMP futterStart     ;und vom Neuem beginnen
 
 endFutter:  MOV AH, 09h
-            MOV BH, 0h
+            MOV BH, 0
             MOV AL, 0FEh        ;Zeichen: "black square"
             MOV CX, 1
-            MOV BL, 00001100b   ;Farbe Rosa
+            MOV BL, 00001100b   ;Farbe Rosa (Fleischfarbe)
             INT 10h             ;Futter printen
             RET
 printFutter ENDP
@@ -417,9 +410,9 @@ printFutter ENDP
 checkScore  PROC                ;Prozedur um zu gucken ob der Punktestand zum Gewinnen erreicht wurde
             cmp mode, 1         ;Easy
             JE easyMode
-            cmp mode, 2         ;normal
+            cmp mode, 2         ;Normal
             JE normalMode
-            cmp mode, 3         ;normal
+            cmp mode, 3         ;Hard
             JE hardMode
             JMP endscore
 
@@ -446,7 +439,7 @@ checkFood   PROC                ;Prozedur um zu sehen ob der Kopf der Schlange m
             JMP endCheck
 
 xstimmt:    CMP snakeY[DI], DH
-            JE ystimmt           ;Wenn x und y Positionen vom Kopf der Schlange mit den x und y Positionen des Futters uebereinstimmen
+            JE ystimmt          ;Wenn x und y Positionen vom Kopf der Schlange mit den x und y Positionen des Futters uebereinstimmen
             JMP endCheck
 
 ystimmt:    ADD DL, BL
@@ -456,7 +449,6 @@ ystimmt:    ADD DL, BL
             INC snakeSize
             INC score
             CALL checkScore
-            ;CALL speedDec
             CALL randomDL
             CALL randomDH
             CALL printFutter
@@ -466,40 +458,31 @@ endCheck:   XOR DI, DI
             RET
 checkFood   ENDP
 
-speedDec    PROC                ;Prozedur um die speed Variable zu Dekrementieren
-            CMP score, 40
-            JE firstDec
-            JMP endSpeed
-
-firstDec:   DEC speed
-endSpeed:   RET
-speedDec    ENDP
-
 endscreen   PROC                ;Endroutine
             MOV AH, 00h
-            MOV AL, 3h          ;Videomodus 3
+            MOV AL, 3
             INT 10h             ;Bildschirm loeschen
 
             MOV DX, OFFSET lose ;Standartmaessig ist der "lose"-String ausgewaehlt
 
             cmp mode, 1         ;Easy
             JE easyWinCon
-            cmp mode, 2         ;normal
+            cmp mode, 2         ;Normal
             JE normWinCon
-            cmp mode, 3         ;normal
+            cmp mode, 3         ;Hard
             JE hardWinCon
             JMP ausgabe
 
 easyWinCon: CMP score, 30
-            JE winScreen        ;Falls man 50 Punkte erreicht kommt der "win"-String
+            JE winScreen        ;Falls man 30 Punkte erreicht kommt der "win"-String
             JMP ausgabe
 
 normWinCon: CMP score, 45
-            JE winScreen        ;Falls man 50 Punkte erreicht kommt der "win"-String
+            JE winScreen        ;Falls man 45 Punkte erreicht kommt der "win"-String
             JMP ausgabe
 
 hardWinCon: CMP score, 60
-            JE winScreen        ;Falls man 50 Punkte erreicht kommt der "win"-String
+            JE winScreen        ;Falls man 60 Punkte erreicht kommt der "win"-String
             JMP ausgabe
 
 winScreen:  MOV DX, OFFSET win
