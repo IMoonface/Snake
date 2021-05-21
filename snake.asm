@@ -1,14 +1,28 @@
 ;==============================================================================
-; Ziel:
-; Man muss versuchen durch das Einsammeln des Futters die Schlange zu sättigen.
-; Bei 50 Punkten gewinnt man.
+;Ziel:
+;Man muss versuchen durch das Einsammeln des Futters die Schlange zu sättigen.
 ;==============================================================================
-; Prinzip:
-; Mit WASD kann man die Schlange steuern. Sobald man das Futter einsammelt
-; verlängert sich die Schlange und wird nach einer gewissen Groeße schneller.
+;Prinzip:
+;Zuerst waehlt man einen Schwierigkeitsgrad:
+;    easy (mode = 1):
+;            -speed = 4
+;            - man muss 30 Punkte erreichen
+;    normal (mode = 2):
+;            - speed = 3
+;            - man muss 45 Punkte erreichen
+;    normal (mode = 2):
+;            - speed = 2
+;            - man muss 60 Punkte erreichen
+;Mit WASD kann man die Schlange steuern.
+;Wenn man das Futter einsammelt verlaengert sich die Schlange.
+;Die Schlange darf weder sich noch den Rand fressen
 ;==============================================================================
-; Unterprogramme:
-; Ausgelaggert in procs.asm
+;Unterprogramme:
+;   - Ausgelaggert in procs.asm
+;   - moveUp
+;   - moveDown
+;   - moveLeft
+;   - moveRight
 ;==============================================================================
             .MODEL SMALL
             .486              ;Prozessortyp
@@ -16,18 +30,18 @@ video_seg   = 0B800h          ;Adresse der VGA Grafikkarte fuer den Textmodus
             .DATA
 ;***************************** DATASEGMENT ************************************
 ;Schlangen-Array
-snakeX      DB  5,  6,  7,  8, 60 dup(0) ;"50 duplicates of zero", die ersten 4 indexe haben werte für die positionen,
-                                          ;wo die schlange starten soll, der rest ist 0
-snakeY      DB 10, 10, 10, 10, 60 dup(0) ;50 weil man bei 50 punkten gewinnt
-snakeSize   DW 3                          ;gibt an wie lang die schlange ist
+snakeX      DB  5,  6,  7,  8, 60 dup(0) ;"60 Duplikate von 0", die ersten 4 Indexe haben Werte fuer die positionen,
+                                         ;wo die Schlange starten soll, der Rest ist 0
+snakeY      DB 10, 10, 10, 10, 60 dup(0) ;60 weil man bei 50 punkten gewinnt
+snakeSize   DW 3                         ;Gibt an wie lang die Schlange ist
 
 ;Scorevariablen
 score       DB 0
 divrest     DB 0
 
 ;Bewegungsvariable
-movflag     DB 4                ;standartmässig bewegt sich die schlange nach rechts
-speed       DW ?                ;muss WORD sein, weil wir es in BX schreiben wollen
+movflag     DB 4                ;Standartmaessig bewegt sich die Schlange nach rechts
+speed       DW ?                ;Muss WORD sein, weil wir es in BX schreiben wollen
 
 ;Futtervariablen
 randomX     DB ?
@@ -37,47 +51,47 @@ oldIOFF     DW ?                ;? heißt nicht initialisiert
 oldISeg     DW ?
 counter     DW ?
 
-mode        DB ?                ;Schwierigkeitsgrad
+mode        DB ?                ;Fuer den Schwierigkeitsgrad
             INCLUDE strings.asm
 ;*************************** CODESEGMENT ******************************
             .CODE
             INCLUDE procs.asm
-;1Ch Interrupt wird alle 18tel Sekunden ausgelöst und dient als Zeitgeber
-ISR1Ch:     PUSH DS             ;alle Register die in einer ISR benutzt werden müssen gesichert werden!!!
+;1Ch Interrupt wird alle 18tel Sekunden ausgeloest und dient als Zeitgeber
+ISR1Ch:     PUSH DS             ;Alle Register die in einer ISR benutzt werden muessen gesichert werden!!!
             PUSH AX
-            MOV AX, @data       ;müssen wir nochmal vorsichtshalber laden, weil wir nie wissen von wo dieser Routine aufgerufen wird
+            MOV AX, @DATA       ;Muessen wir nochmal vorsichtshalber laden, weil wir nie wissen von wo diese Routine aufgerufen wird
             MOV DS, AX
-            DEC counter         ;runterzählen des counters
-            POP AX              ;und am Ende zurücksichern nicht vergessen!
+            DEC counter         ;Runterzaehlen des counters
+            POP AX
             POP DS
-            iret
+            IRET
 
 start:      MOV AX, @DATA       ;Adresse des Datensegments in das Register „AX“ laden
             MOV DS, AX          ;In das Segmentregister „DS“ uebertragen
                                 ;(das DS-Register kann nicht direkt mit einer Konstante beschrieben werden)
             MOV AL, 1Ch
             MOV AH, 35h
-            INT 21h             ;Interrupt 21h mit ah auf 35h: Interrupt-Vektor ermitteln ((AL)	Interrupt Nummer)
+            INT 21h             ;Interrupt 21h mit AH auf 35h: Interrupt-Vektor ermitteln ((AL)	Interrupt Nummer)
                                 ;Diese Funktion liefert als Resultat den aktuellen Inhalt eines Interrupt-Vektors
-                                ;und damit die Adresse der zugehörigen Interrupt-Routine zurück
-            MOV oldIOFF, bx
-            MOV oldISeg, es     ;in es:bx ist jetzt die alte ISR Adresse und wir sichern diese
-            PUSH DS             ;wir müssen der DOS Routine die neue adresse der ISR in DS:DX übergeben
-                                ;wir sichern dazu erstmal ds
+                                ;und damit die Adresse der zugehoerigen Interrupt-Routine zurueck
+            MOV oldIOFF, BX
+            MOV oldISeg, ES     ;In ES:BX ist jetzt die alte ISR Adresse und wir sichern diese
+                                ;Wir muessen der DOS Routine die neue Adresse der ISR in DS:DX uebergeben
+            PUSH DS             ;Wir sichern dazu erstmal DS
 
-            PUSH CS             ;unsere Interrupt service Routine steht ihm CodeSegment
-                                ;die CodeSegment-Adresse steht in CS, diese sichern wir ebenfalls
+                                ;Unsere ISR steht ihm CodeSegment. Die CodeSegment-Adresse steht in CS, diese sichern wir ebenfalls
+            PUSH CS             ;Die CodeSegment-Adresse steht in CS, diese sichern wir ebenfalls
             POP DS              ;DS <- CS
             MOV DX, OFFSET ISR1Ch ;Adresse ist jetzt in DS:DX
             MOV AL, 1Ch
             MOV AH, 25h
-            INT 21h             ;Interrupt 21h mit ah auf 25h: Interrupt-Vektor setzen ((AL) Interrupt Nummer)
-                                ;damit setzen wir jetzt unsere eigens definierte ISR1Ch
-            POP DS              ;Datensegment, dahin wo es hingehört
+            INT 21h             ;Interrupt 21h mit AH auf 25h: Interrupt-Vektor setzen ((AL) Interrupt Nummer)
+                                ;Damit setzen wir jetzt unsere eigens definierte ISR1Ch
+            POP DS              ;Datensegment, dahin wo es hingehoert
 
             MOV AH, 00h
-            MOV AL, 3h
-            INT 10h             ;Wechsle in Videomodus 3
+            MOV AL, 03h         ;Videomodus3 -> 640x200 Pixel mit 16 Farben (in 80x25 Bloecken)
+            INT 10h             ;Zeichenbildschirm einstellen
 
             CALL printLogo
             CALL difficulty
@@ -95,7 +109,7 @@ start:      MOV AX, @DATA       ;Adresse des Datensegments in das Register „AX
             CALL printFutter    ;Aufruf der Prozedur um an Randompositionen Futter zu erzeugen
 
 warte:      MOV AH, 0Ch         ;Tastaturbuffer leeren, damit sich schnelle Eingaben nicht stappeln (aus dem Ulbricht Video)
-            MOV AL, 0h          ;rueckgabe wert nichts
+            MOV AL, 0h
             INT 21h
 
             XOR BX, BX
@@ -103,10 +117,10 @@ warte:      MOV AH, 0Ch         ;Tastaturbuffer leeren, damit sich schnelle Eing
             MOV counter, bx
 
 warteLoop:  CMP counter, 0
-            JNE warteLoop       ;warten bis der Interrupt counter runtergezählt hat
+            JNE warteLoop       ;Warten bis der Interrupt den counter runtergezaehlt hat
 
             MOV AH, 01h         ;Keyboard Status ohne Abholung des Zeichens (von Ihnen)
-            INT 16h             ;ZF = 1: kein wartendes Zeichen. ZF = 0: ein zeichen steht zur abholung bereit.
+            INT 16h             ;ZF = 1: kein wartendes Zeichen. ZF = 0: ein Zeichen steht zur Abholung bereit.
             JZ nobutton         ;JMP if ZF gesetzt (ZF = 1).
 
 compare:    MOV AH, 00h         ;Liest das letzte Zeichen aus den Tastaturbuffer aus und speichert es in AL
@@ -122,11 +136,10 @@ compare:    MOV AH, 00h         ;Liest das letzte Zeichen aus den Tastaturbuffer
             JE right
             CMP AL, 1Bh         ;ESC
             JE escape
-            JNE nobutton        ;Falls kein Button gedrueckt wurde
+            JNE nobutton        ;Falls kein Button gedrueckt wurde...
 
-;Ueberspringt die INC bzw. DEC der snakeX oder snakeY Arrays
 noButton:   CMP movflag, 1
-            JE up               ;wird ueberprueft welche movflag derzeit aktiv ist und der letzte zutreffende Fall wird wiederholt
+            JE up               ;...wird ueberprueft welche movflag derzeit aktiv ist und der letzte zutreffende Fall wird wiederholt
             CMP movflag, 2
             JE down
             CMP movflag, 3
@@ -135,7 +148,7 @@ noButton:   CMP movflag, 1
             JE right
 
 up:         CMP movflag, 2      ;Um zu verhindern, dass man direkt nach down nicht wieder up machen kann
-            JE noButton
+            JE noButton         ;JMP Equal zu noButton (ist dann so als haette man keinen Button gedrueckt)
             XOR BX, BX
             MOV BH, -1          ;Kleiner Fix, weil ansonsten das neue Element im Schlangen Array an die Stelle
                                 ;der derzeitigen Position geschrieben werden wuerde und man so nochmal warten muesste
@@ -151,7 +164,7 @@ down:       CMP movflag, 1      ;Um zu verhindern, dass man direkt nach up nicht
             JMP calls
 
 left:       CMP movflag, 4      ;Um zu verhindern, dass man direkt nach right nicht wieder left machen kann
-            JE noButton         ;JMP Equal zu noButton (ist dann so als hätte man keinen Button gedrückt)
+            JE noButton
             XOR BX, BX
             MOV BL, -1
             CALL moveLeft
@@ -164,7 +177,7 @@ right:      CMP movflag, 3      ;Um zu verhindern, dass man direkt nach left nic
             CALL moveRight
             JMP calls
 
-moveUp      PROC                ;Musste ich als Prozedur machen, weil es irgendwann zu weit weg war
+moveUp      PROC                ;Musste ich als Prozedur machen, weil es irgendwann zu weit weg war um es mit JE zu erreichen
             MOV movflag, 1
             CALL checkFood      ;Aufruf der Prozedur um zu sehen ob der Kopf der Schlange mit der Position des Futters uebereinstimmt
             CALL resetSnake
@@ -213,7 +226,7 @@ escape:     MOV AH, 00h
 calls:      CALL collision
             CALL printSnake
             CALL deleteTail
-            cmp score, 100      ;weil es ansonsten irgendwann die Zero Flag setzt
+            CMP score, 100      ;weil es ansonsten irgendwann die Zero Flag setzt (da nochmal testen)
             JMP warte           ;Zurueck zur Endlosschleife
 
 ende:       CALL endscreen

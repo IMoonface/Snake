@@ -1,12 +1,12 @@
-printLogo   PROC                    ;Prozedur zum Printen des Logos
-            MOV AH, 02h             ;BH = page number, DH = row, DL = column
+printLogo   PROC                ;Prozedur zum Printen des Logos
+            MOV AH, 02h         ;BH = page number, DH = row, DL = column
             MOV DL, 0
-            MOV DH, 1               ;Position 0,0 (DL = x, DH = y)
+            MOV DH, 1           ;Position 0,0 (DL = x, DH = y)
             MOV BH, 0h
-            INT 10h                 ;Cursor setzen
+            INT 10h             ;Cursor setzen
 
-            MOV AH, 01h             ;Cursorform einstellen
-            MOV CX, 2607h           ;CX=2607h heißt unsichtbarer Cursor
+            MOV AH, 01h         ;Cursorform einstellen
+            MOV CX, 2607h       ;CX=2607h heißt unsichtbarer Cursor
             INT 10h
 
             MOV AH, 09h
@@ -19,12 +19,11 @@ mausProc    PROC FAR            ;Muss FAR sein, weil vom Interrupt vorgeschriebe
             MOV AX, video_seg
             MOV ES, AX          ;Bildschirmadresse laden
 
-            ;DX vertical cursor position
+                                ;DX vertical cursor position
             SHR DX, 3           ;y-koord/8, weil wir nicht mit den Pixeln arbeiten wollen, sondern mit den Blöcken im Videomodus
-            ;----nochmal nachfragen
             IMUL DX, 160        ;Vorzeichenbehaftete Multiplikation, um die Zeilenbyteadresse auszurechnen y-koord*160 (160 Bytes pro Zeile)
 
-            ;CX = horizontal cursor position
+                                ;CX = horizontal cursor position
             SHR CX, 3           ;x-koord/8
             SHL CX, 1           ;x-koord*2 (damit wir eine wortadresse bekommen)
 
@@ -253,7 +252,7 @@ printPoints ENDP
 printSnake  PROC                ;Prozedur um die Schlange zu printen
                                 ;Setzt den Cursor an snakeX[DI] und snakeY[DI] und gibt dort ein '+' aus
             CALL printPoints    ;Prozedur um die Punktzahl zu printen
-            XOR DI, DI         ;int x = 0, DI (destination index) wird hier als Zeiger genommen
+            XOR DI, DI          ;int x = 0, DI (destination index) wird hier als Zeiger genommen
 ;Schleife um alle Einträge des snakeX und snakeY Arrays durchzugehen
 printLoop:  MOV AH, 02h
             MOV DL, snakeX[DI]
