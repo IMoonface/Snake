@@ -408,21 +408,21 @@ endFood:    MOV AH, 09h
 printFood   ENDP
 
 checkScore  PROC                ;Prozedur um zu gucken ob der Punktestand zum Gewinnen erreicht wurde
-            cmp mode, 1         ;Easy
+            CMP mode, 1         ;Easy
             JE easyMode
-            cmp mode, 2         ;Normal
+            CMP mode, 2         ;Normal
             JE normalMode
-            cmp mode, 3         ;Hard
+            CMP mode, 3         ;Hard
             JE hardMode
             JMP endscore
 
-easyMode:   cmp score, 30
+easyMode:   CMP score, 30
             JE ende
 
-normalMode: cmp score, 45
+normalMode: CMP score, 45
             JE ende
 
-hardMode:   cmp score, 60
+hardMode:   CMP score, 60
             JE ende
 
 endScore:   RET
@@ -465,11 +465,11 @@ endscreen   PROC                ;Endroutine
 
             MOV DX, OFFSET lose ;Standartmaessig ist der "lose"-String ausgewaehlt
 
-            cmp mode, 1         ;Easy
+            CMP mode, 1         ;Easy
             JE easyWinCon
-            cmp mode, 2         ;Normal
+            CMP mode, 2         ;Normal
             JE normWinCon
-            cmp mode, 3         ;Hard
+            CMP mode, 3         ;Hard
             JE hardWinCon
             JMP ausgabe
 
