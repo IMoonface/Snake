@@ -1,4 +1,4 @@
-;Strings
+;Strings erstellt mit: https://www.ascii-art-generator.org/de.html
 logo        DB " ############################################################################## "
             DB " #                                                                            # "
             DB " #                                                                            # "

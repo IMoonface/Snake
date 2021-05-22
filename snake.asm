@@ -1,9 +1,14 @@
 ;==============================================================================
+;Abschlussprogramm fuer das Modul "Assemblerprogrammierung" bei Prof. Krämer
+;Jahrgang: 18-INB2
+;Titel: Snake
+;Programmed by: Marc Uxa
+;==============================================================================
 ;Ziel:
 ;Man muss versuchen durch das Einsammeln des Futters die Schlange zu sättigen.
 ;==============================================================================
 ;Prinzip:
-;Zuerst waehlt man einen Schwierigkeitsgrad:
+;Zuerst waehlt man einen Schwierigkeitsgrad
 ;    easy (mode = 1):
 ;            - speed = 4
 ;            - man muss 30 Punkte erreichen
@@ -13,9 +18,10 @@
 ;    normal (mode = 2):
 ;            - speed = 2
 ;            - man muss 60 Punkte erreichen
-;Mit WASD kann man die Schlange steuern.
+;
+;Mit WASD kann man dann die Schlange steuern.
 ;Wenn man das Futter einsammelt verlaengert sich die Schlange.
-;Die Schlange darf weder sich noch den Rand fressen
+;Die Schlange darf weder sich noch den Rand fressen. Viel Spass!
 ;==============================================================================
 ;Unterprogramme:
 ;   - Ausgelaggert in procs.asm
@@ -23,6 +29,9 @@
 ;   - moveDown
 ;   - moveLeft
 ;   - moveRight
+;
+;Besonderheiten:
+;   - eigene Interrupt Service Routine für 1Ch
 ;==============================================================================
             .MODEL SMALL
             .486              ;Prozessortyp
@@ -43,10 +52,10 @@ movflag     DB 4                ;Standartmaessig bewegt sich die Schlange nach r
 speed       DW ?                ;Muss WORD sein, weil wir es in BX schreiben wollen
 
 ;Futtervariablen
-randomX     DB ?
+randomX     DB ?                ;? heißt nicht initialisiert
 randomY     DB ?
 
-oldIOFF     DW ?                ;? heißt nicht initialisiert
+oldIOFF     DW ?
 oldISeg     DW ?
 counter     DW ?
 
@@ -105,7 +114,7 @@ beginn:     MOV AX, @DATA       ;Adresse des Datensegments in das Register „AX
             CALL deleteTail     ;Aufruf der Prozedur um den Schwanz der Schlange zu loeschen
             CALL randomDL       ;Aufruf der Prozedur um eine Randomzahl für DL zu erzeugen
             CALL randomDH       ;Aufruf der Prozedur um eine Randomzahl für DL zu erzeugen
-            CALL printFutter    ;Aufruf der Prozedur um an Randompositionen Futter zu erzeugen
+            CALL printFood      ;Aufruf der Prozedur um an Randompositionen Futter zu erzeugen
 
 waitForKey: MOV AH, 0Ch
             MOV AL, 0

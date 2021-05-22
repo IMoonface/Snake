@@ -43,7 +43,7 @@ difficulty  PROC
             MOV DX, OFFSET mausProc ;Wir laden die Adresse von mausProc
             INT 33h             ;Maus Interrupt
 
-            MOV AX, 01h           ;Zeige Mauszeiger
+            MOV AX, 01h         ;Zeige Mauszeiger
             INT 33h
 
 logoLoop:   ;HARD
@@ -129,7 +129,7 @@ printFrame  PROC                ;Prozedur zum Zeichnen des Rahmens
 
             MOV DH, 1           ;y = 1
 ;Zeichnet den linken Rand
-linkeSeite: MOV AH, 02h
+leftSide:   MOV AH, 02h
             MOV BH, 0
             MOV DL, 0           ;Position 0,1 (DL = x, DH = y)
             INT 10h             ;Cursor setzen
@@ -143,9 +143,9 @@ linkeSeite: MOV AH, 02h
 
             INC DH              ;Addiert auf das DH Register eine 1
             CMP DH, 24          ;Wir gehen 24 Zeilen runter
-            JNE linkeSeite      ;Falls nicht equal -> Weiter mit der linken Seite
-rechteSeite:                    ;Zeichnet den rechten Rand
-            MOV AH, 02h
+            JNE leftSide        ;Falls nicht equal -> Weiter mit der linken Seite
+;Zeichnet den rechten Rand
+rightSide:  MOV AH, 02h
             MOV BH, 0
             MOV DL, 79
             INT 10h             ;Cursor setzen
@@ -159,7 +159,7 @@ rechteSeite:                    ;Zeichnet den rechten Rand
 
             INC DH
             CMP DH, 24
-            JNE rechteSeite     ;Falls nicht equal -> Weiter mit der rechten Seite
+            JNE rightSide       ;Falls nicht equal -> Weiter mit der rechten Seite
 
             ;Unterer Rand
             MOV AH, 02h
@@ -232,7 +232,7 @@ zehner:     XOR BL, BL
             INT 10h             ;Zeichen schreiben
 
             MOV AL, divrest     ;In AL den Rest der Division schieben
-            INC DL              ;x+1
+            INC DL              ;DI+1
 
 printEiner: ADD AL, '0'
             MOV AH, 02h
@@ -326,7 +326,7 @@ collision   PROC                ;Ueberpruefen ob sich die Schlange selber frisst
             RET
 collision   ENDP
 
-;https://stackoverflow.com/questions/17855817/generating-a-random-number-within-range-of-0-9-in-x86-8086-assembly
+;Quelle: https://stackoverflow.com/questions/17855817/generating-a-random-number-within-range-of-0-9-in-x86-8086-assembly
 randomDL    PROC                ;Prozedur um eine Randomzahl für DL zu erzeugen
             MOV AH, 00h         ;Interrupt um die Systemzeit zu erhalten
             INT 1Ah             ;In CX:DX ist jetzt die Anzahl der clock ticks seit Mitternacht
@@ -378,8 +378,8 @@ endRandDH:  XOR AX, AX
             RET
 randomDH    ENDP
 
-printFutter PROC                ;Prozedur um an Randompositionen Futter zu erzeugen
-futterStart:
+printFood   PROC                ;Prozedur um an Randompositionen Futter zu erzeugen
+foodStart:
             MOV AH, 02h
             MOV BH, 0
             MOV DL, randomX
@@ -392,20 +392,20 @@ futterStart:
 
             CMP AL, '+'         ;man muss sicherstellen, das das Futter nicht an der Stelle eines Schlangenkoerperteils spawnen kann
             JE unterSnake       ;falls es doch so ist
-            JMP endFutter
+            JMP endFood
 
-unterSnake: CALL randomDL       ;neuer Randomwert für DL
-            CALL randomDH       ;neuer Randomwert für DH
-            JMP futterStart     ;und vom Neuem beginnen
+unterSnake: CALL randomDL       ;Neuer Randomwert für DL
+            CALL randomDH       ;Neuer Randomwert für DH
+            JMP foodStart       ;Von vorne anfangen
 
-endFutter:  MOV AH, 09h
+endFood:    MOV AH, 09h
             MOV BH, 0
             MOV AL, 0FEh        ;Zeichen: "black square"
             MOV CX, 1
             MOV BL, 00001100b   ;Farbe Rosa (Fleischfarbe)
-            INT 10h             ;Futter printen
+            INT 10h             ;Zeichen schreiben
             RET
-printFutter ENDP
+printFood   ENDP
 
 checkScore  PROC                ;Prozedur um zu gucken ob der Punktestand zum Gewinnen erreicht wurde
             cmp mode, 1         ;Easy
@@ -451,7 +451,7 @@ ystimmt:    ADD DL, BL
             CALL checkScore
             CALL randomDL
             CALL randomDH
-            CALL printFutter
+            CALL printFood
             JMP calls           ;Damit die Schlange nicht 2 Pixel springt muss ich early raus (siehe Erklaerung)
 
 endCheck:   XOR DI, DI
