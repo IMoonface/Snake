@@ -31,10 +31,12 @@
 ;   - moveRight
 ;
 ;Besonderheiten:
-;   - eigene Interrupt Service Routine für 1Ch
+;   - eigene Interrupt Service Routine für ISR1Ch
+;   - eigene Maus Unterroutine (AH = 0Ch)
+;   - Videomodus 3
 ;==============================================================================
             .MODEL SMALL
-            .486              ;Prozessortyp
+            .386
 video_seg   = 0B800h          ;Adresse der VGA Grafikkarte fuer den Textmodus
             .DATA
 ;***************************** DATASEGMENT ************************************
@@ -59,7 +61,7 @@ oldIOFF     DW ?
 oldISeg     DW ?
 counter     DW ?
 
-mode        DB ?                ;Fuer den Schwierigkeitsgrad
+mode        DB 0                ;Fuer den Schwierigkeitsgrad (ist auf 0, weil wir in diffLoop ja andauern vergleichen)
             INCLUDE strings.asm
 ;*************************** CODESEGMENT ******************************
             .CODE

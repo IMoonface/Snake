@@ -29,21 +29,15 @@ mausProc    PROC FAR            ;Muss FAR sein, weil vom Interrupt vorgeschriebe
             ADD CX, DX          ;In CX steht jetzt unsere Bildschirmposition
             MOV DI, CX          ;Umweg mit DI, weil wir nicht direkt CX benutzen können (Illegal indexing mode)
                                 ;Da der Assembler nicht weiß, ob es sich um ein Byte oder Word handelt muessen wir es ihm sagen
-            MOV WORD PTR ES:[DI], 1h ;1h = das was wir auf den Bildschirm schreiben, sobald wir die Maus druecken
+            MOV WORD PTR ES:[DI], 1h ;das was wir auf den Bildschirm schreiben, sobald wir die Maus druecken (das Zeichen brauchen wir nur fuer den Vergleich)
+            CALL checkPosi      ;Prozedur um zu checken, ob man Easy, Normal oder Hard angeklickt hat
+
+            MOV AX, 01h         ;Zeige Mauszeiger, damit das Zeichen was wir geschrieben haben nicht den Mauszeiger verdeckt
+            INT 33h
             RET                 ;Zum zurueckspringen
 mausProc    ENDP
 
-difficulty  PROC
-            MOV AX, 0Ch         ;Benutzerdefinierte Unterroutine und Eingabemaske für die Maus festlegen
-            PUSH CS             ;Wir benoetigen ES:DX = far pointer to user interrupt, dazu pushen wir CS
-            POP ES              ;und laden es in ES
-            MOV CX, 1111110b    ;Wir reagieren jetzt auf alle Tastenoptionen der Maus, außer das Bewegen der Maus
-                                ;Routine bei ES: DX wird aufgerufen, wenn ein Ereignis eintritt und das entsprechende Bit in der Benutzermaske gesetzt ist
-            MOV DX, OFFSET mausProc ;Wir laden die Adresse von mausProc
-            INT 33h             ;Maus Interrupt
-            MOV AX, 01h         ;Zeige Mauszeiger
-            INT 33h
-diffLoop:
+checkPosi   PROC                ;Prozedur um zu checken, ob man Easy, Normal oder Hard angeklickt hat
 ;Gucken, ob auf einen Buchstaben in "Hard" geklickt wird (56-52 checken)
             MOV DL, 56
 hardCheck:  MOV AH, 02h
@@ -95,23 +89,41 @@ easyCheck:  MOV AH, 02h
             DEC DL
             CMP DL, 22
             JNE easyCheck
-            JMP diffLoop
+            JMP endPosi         ;Falls es an keiner Posi eine Uebereinstimmung gab
 
 easyConfig: MOV counter, 4
             MOV speed, 4
             MOV mode, 1         ;Easy
-            JMP endStart
+            JMP endPosi
 
 normConfig: MOV counter, 3
             MOV speed, 3
             MOV mode, 2         ;Normal
-            JMP endStart
+            JMP endPosi
 
 hardConfig: MOV counter, 2
             MOV speed, 2
             MOV mode, 3         ;Hard
 
-endStart:   MOV AX, 0h          ;Reset Maus
+endPosi:    RET
+checkPosi   ENDP
+
+difficulty  PROC
+            MOV AX, 0Ch         ;Benutzerdefinierte Unterroutine und Eingabemaske für die Maus festlegen
+            PUSH CS             ;Wir benoetigen ES:DX = far pointer to user interrupt, dazu pushen wir CS
+            POP ES              ;und laden es in ES
+            MOV CX, 1111110b    ;Wir reagieren jetzt auf alle Tastenoptionen der Maus (außer das Bewegen der Maus)
+                                ;Routine bei ES: DX wird aufgerufen, wenn ein Ereignis eintritt und das entsprechende Bit in der Benutzermaske gesetzt ist
+            MOV DX, OFFSET mausProc ;Wir laden die Adresse von mausProc
+            INT 33h             ;Maus Interrupt
+            MOV AX, 01h         ;Zeige Mauszeiger
+            INT 33h
+
+diffLoop:   CMP mode, 0
+            JG endDiff
+            JMP diffLoop
+
+endDiff:    MOV AX, 0h          ;Reset Maus
             INT 33h
 
             MOV AH, 00h         ;Bildschirm Loeschen
@@ -128,11 +140,11 @@ printFrame  PROC                ;Prozedur zum Zeichnen des Rahmens
             MOV DH, 0
             INT 10h             ;Cursor setzen
 
-            MOV AH, 09h         ;AL = Zeichen, BH = Seitennummer, BL = Farbe, CX = Haeufigkeit, mit der Zeichen gedruckt werden
-            MOV AL, 0DBh
-            MOV BH, 0
-            MOV BL, 00000111b   ;Farbe: Weiss
-            MOV CX, 80
+            MOV AH, 09h
+            MOV AL, 0DBh        ;AL = Zeichen
+            MOV BH, 0           ;BH = Seitennummer
+            MOV BL, 00000111b   ;BL = Farbe, Farbe: Weiss
+            MOV CX, 80          ;CX = Haeufigkeit, mit der Zeichen gedruckt werden
             INT 10h             ;Zeichen schreiben
 
             MOV DH, 1           ;y = 1
@@ -214,14 +226,14 @@ printScore  PROC                ;Prozedur um "Score" zu printen
             RET
 printScore  ENDP
 
-printPoints PROC                ;Prozedur um die Punktzahl mit Potenzzerlegung zu zerlegen, falls sie zu groß wird um sie auszugeben
+printPoints PROC                ;Prozedur um die Punktzahl mit Potenzzerlegung zu zerlegen, falls sie zu gross wird um sie auszugeben
             XOR AX, AX
             MOV AL, score
             MOV DL, 42
 
             CMP AL, 9
             JG zehner           ;Wenn ueber 10 JMP zu Zehner-Potenzzerlegung
-            JMP printEiner
+            JMP printEiner      ;Ansonsten printe nur die Einerstelle
 
 zehner:     XOR BL, BL
             MOV BL, 0Ah         ;0Ah = 10
@@ -272,7 +284,7 @@ printLoop:  MOV AH, 02h
             MOV AH, 09h
             MOV AL, '+'         ;und gibt dort ein '+' aus
             MOV BH, 0
-            MOV BL, 00101110b   ;Farbe Gelb und der Hintergrund Gruen
+            MOV BL, 00101110b   ;Farbe Gelb (Bits 4-0) und der Hintergrund Gruen (Bits 7-5), 8 Bit fuers Blinken
             MOV CX, 1
             INT 10h
 
@@ -306,7 +318,8 @@ resetSnake  PROC                ;Prozedur, um den body der Schlange anzupassen (
             XOR CX, CX
             XOR DI, DI
 
-;Die Werte des Arrays werden "durchgereicht", also der Wert an Indexstelle 0 bekommt den Wert an Indexstelle 1 . Dieser bekommt wiederrum den an Indexstelle 2 usw.
+;Die Werte des Arrays werden "durchgereicht", also der Wert an Indexstelle 0 bekommt den Wert an Indexstelle 1 .
+;Dieser bekommt wiederrum den an Indexstelle 2 usw.
 resetLoop:  MOV CL, snakeX[DI+1]
             MOV CH, snakeY[DI+1]
             MOV snakeX[DI], CL
@@ -345,19 +358,19 @@ checkScore  PROC                ;Prozedur um zu gucken ob der Punktestand zum Ge
             JE normalMode
             JNE hardMode        ;Hard, weil mehr Modi gibt es ja nicht
 
-easyMode:   CMP score, 30
+easyMode:   CMP score, 30       ;Falls man die Punktezahl 30 erreicht hat
             JNE endScore
-            MOV DX, OFFSET win
+            MOV DX, OFFSET win  ;DX bekommt den OFFSET des Zeigers der den "win" - String angibt
             JMP ende
 
-normalMode: CMP score, 40
+normalMode: CMP score, 40       ;Falls man die Punktezahl 40 erreicht hat
             JNE endScore
-            MOV DX, OFFSET win
+            MOV DX, OFFSET win  ;DX bekommt den OFFSET des Zeigers der den "win" - String angibt
             JMP ende
 
-hardMode:   CMP score, 50
+hardMode:   CMP score, 50       ;Falls man die Punktezahl 50 erreicht hat
             JNE endScore
-            MOV DX, OFFSET win
+            MOV DX, OFFSET win  ;DX bekommt den OFFSET des Zeigers der den "win" - String angibt
             JMP ende
 
 endScore:   RET
@@ -402,7 +415,7 @@ randomDH    PROC                ;Prozedur um eine Randomzahl für DH zu erzeugen
             JE istEins
             JMP endRandDH
 
-istNull2:   INC DL
+istNull2:   INC DL              ;Damit wir keine 0 bekommen
 
 istEins:    INC DL              ;Damit wir keine 1 bekommen
 
@@ -495,10 +508,10 @@ endscreen   PROC                ;Prozedur zum Abarbeiten der Sachen, die ich am 
             MOV AL, 3
             INT 10h             ;Bildschirm loeschen
 
-            CMP DX, OFFSET win  ;Falls der OFFSET des Zeigers vom "win"-String in DX schon drinsteht (also man den passenden score erreicht hat)
+            CMP DX, OFFSET win  ;Falls der OFFSET des Zeigers der den "win"-String angibt in DX drinsteht (also man den passenden score erreicht hat)
             JE Ausgabe          ;Ausgabe
 
-            MOV DX, OFFSET lose ;Ansonsten wird der OFFSET des Zeigers vom "lose"-String ausgewaehlt und ausgegeben
+            MOV DX, OFFSET lose ;Ansonsten wird der OFFSET des Zeigers der den "lose"-String angibt ausgewaehlt und ausgegeben
 ausgabe:    MOV AH, 09h
             INT 21h             ;Zeichenkette darstellen
             RET
