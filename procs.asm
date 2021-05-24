@@ -2,7 +2,7 @@ printLogo   PROC                ;Prozedur zum Printen des Logos
             MOV AH, 02h         ;BH = Seitennummer, DL = Spalte, DH = Zeile
             MOV BH, 0
             MOV DL, 0
-            MOV DH, 1           ;Position 0,1 (DL = x, DH = y)
+            MOV DH, 0           ;Position 0,1 (DL = x, DH = y)
             INT 10h             ;Cursor setzen
 
             MOV AH, 01h
