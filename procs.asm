@@ -343,18 +343,22 @@ checkScore  PROC                ;Prozedur um zu gucken ob der Punktestand zum Ge
             JE easyMode
             CMP mode, 2         ;Normal
             JE normalMode
-            CMP mode, 3         ;Hard
-            JE hardMode
-            JMP endscore
+            JNE hardMode        ;Hard, weil mehr Modi gibt es ja nicht
 
 easyMode:   CMP score, 30
-            JE ende
+            JNE endScore
+            MOV DX, OFFSET win
+            JMP ende
 
-normalMode: CMP score, 45
-            JE ende
+normalMode: CMP score, 40
+            JNE endScore
+            MOV DX, OFFSET win
+            JMP ende
 
-hardMode:   CMP score, 60
-            JE ende
+hardMode:   CMP score, 50
+            JNE endScore
+            MOV DX, OFFSET win
+            JMP ende
 
 endScore:   RET
 checkScore  ENDP
@@ -474,31 +478,11 @@ endscreen   PROC                ;Endroutine
             MOV AL, 3
             INT 10h             ;Bildschirm loeschen
 
-            MOV DX, OFFSET lose ;Standartmaessig ist der "lose"-String ausgewaehlt
+            CMP DX, OFFSET win  ;Falls der "win"-String in DX schon drinsteht (also man den passenden score erreicht hat)
+            JE Ausgabe          ;Ausgabe
 
-            CMP mode, 1         ;Easy
-            JE easyWinCon
-            CMP mode, 2         ;Normal
-            JE normWinCon
-            CMP mode, 3         ;Hard
-            JE hardWinCon
-            JMP ausgabe
-
-easyWinCon: CMP score, 30
-            JE winScreen        ;Falls man 30 Punkte erreicht kommt der "win"-String
-            JMP ausgabe
-
-normWinCon: CMP score, 45
-            JE winScreen        ;Falls man 45 Punkte erreicht kommt der "win"-String
-            JMP ausgabe
-
-hardWinCon: CMP score, 60
-            JE winScreen        ;Falls man 60 Punkte erreicht kommt der "win"-String
-            JMP ausgabe
-
-winScreen:  MOV DX, OFFSET win
-
+            MOV DX, OFFSET lose ;Ansonsten wird der "lose"-String ausgewählt und ausgegeben
 ausgabe:    MOV AH, 09h
-            INT 21h
+            INT 21h             ;Zeichenkette darstellen
             RET
 endscreen   ENDP
