@@ -80,15 +80,12 @@ beginn:     MOV AX, @DATA       ;Adresse des Datensegments in das Register „AX
             MOV AL, 1Ch
             MOV AH, 35h
             INT 21h             ;Interrupt 21h mit AH auf 35h: Interrupt-Vektor ermitteln ((AL)	Interrupt Nummer)
-                                ;Diese Funktion liefert als Resultat den aktuellen Inhalt eines Interrupt-Vektors
-                                ;und damit die Adresse der zugehoerigen Interrupt-Routine zurueck
+                                ;In ES:BX ist jetzt die alte ISR Adresse und wir sichern diese
             MOV oldIOFF, BX
-            MOV oldISeg, ES     ;In ES:BX ist jetzt die alte ISR Adresse und wir sichern diese
+            MOV oldISeg, ES
                                 ;Wir muessen der DOS Routine die neue Adresse der ISR in DS:DX uebergeben
             PUSH DS             ;Wir sichern dazu erstmal DS
-
-                                ;Unsere ISR steht ihm CodeSegment. Die CodeSegment-Adresse steht in CS, diese sichern wir ebenfalls
-            PUSH CS             ;Die CodeSegment-Adresse steht in CS, diese sichern wir ebenfalls
+            PUSH CS             ;Unsere ISR steht ihm CodeSegment. Die CodeSegment-Adresse steht in CS, diese sichern wir ebenfalls
             POP DS              ;DS <- CS
             MOV DX, OFFSET ISR1Ch ;Adresse ist jetzt in DS:DX
             MOV AL, 1Ch
@@ -225,7 +222,8 @@ moveRight   PROC
             RET
 moveRight   ENDP
 
-escape:     MOV AH, 00h
+escape:     CALL oldISRback     ;Prozedur zum Widerherstellen der alten ISR1Ch
+            MOV AH, 00h
             MOV AL, 3
             INT 10h             ;Bildschirm Loeschen
 
@@ -237,7 +235,7 @@ calls:      CALL collision
             CALL deleteTail
             JMP waitForKey      ;Zurueck zur Endlosschleife
 
-ende:       CALL endscreen
+ende:       CALL endscreen      ;Prozedur zum Abarbeiten der Sachen, die ich am Schluss brauche
             MOV AH, 4Ch
             INT 21h             ;Zurueck zu DOS
             .STACK 100h         ;Wo wir auf den Stack starten wollen

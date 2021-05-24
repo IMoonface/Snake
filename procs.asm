@@ -11,7 +11,7 @@ printLogo   PROC                ;Prozedur zum Printen des Logos
 
             MOV AH, 09h
             MOV DX, OFFSET logo
-            INT 21h
+            INT 21h             ;Zeichenkette darstellen (in DX muss der OFFSET des Zeigers, der eine mit $ abgeschlossene Zeichenkette angibt drinstehen)
             RET
 printLogo   ENDP
 
@@ -210,7 +210,7 @@ printScore  PROC                ;Prozedur um "Score" zu printen
 
             MOV DX, OFFSET scoreString
             MOV AH, 09h
-            INT 21h             ;Zeichenkette darstellen (in DX muss der OFFSET des Zeigers, der eine mit $ abgeschlossene Zeichenkette angibt drinstehen)
+            INT 21h             ;Zeichenkette darstellen
             RET
 printScore  ENDP
 
@@ -345,19 +345,19 @@ checkScore  PROC                ;Prozedur um zu gucken ob der Punktestand zum Ge
             JE normalMode
             JNE hardMode        ;Hard, weil mehr Modi gibt es ja nicht
 
-easyMode:   CMP score, 30
+easyMode:   CMP score, 30       ;Falls score gleich 30
             JNE endScore
-            MOV DX, OFFSET win
+            MOV DX, OFFSET win  ;"win"- String auswaehlen
             JMP ende
 
-normalMode: CMP score, 40
+normalMode: CMP score, 40       ;Falls score gleich 40
             JNE endScore
-            MOV DX, OFFSET win
+            MOV DX, OFFSET win  ;"win"- String auswaehlen
             JMP ende
 
-hardMode:   CMP score, 50
+hardMode:   CMP score, 50       ;Falls score gleich 50
             JNE endScore
-            MOV DX, OFFSET win
+            MOV DX, OFFSET win  ;"win"- String auswaehlen
             JMP ende
 
 endScore:   RET
@@ -473,12 +473,29 @@ endCheck:   XOR DI, DI
             RET
 checkFood   ENDP
 
-endscreen   PROC                ;Endroutine
+oldISRback  PROC                ;Prozedur zum Wiederherstellen der alten ISR1Ch
+            PUSH DX             ;Um sicherzugehen fall in DX bereits der Offset des Zeigers auf des "win" - String steht
+            PUSH DS             ;Um nicht nochmal das Datensegment reinladen zu muessen
+            MOV DX, oldIOFF
+            MOV AX, oldISeg
+            MOV DS, AX          ;Kleiner Umweg, da man DS nicht direkt beschreiben kann
+                                ;in DS:DX steht jetzt die alte Adresse#
+            MOV AL, 1Ch
+            MOV AH, 25h         ;Interrupt setzen
+            INT 21h
+            POP DS              ;Reihenfolge!
+            POP DX              ;Nicht vergessen!
+            RET
+oldISRback  ENDP
+
+endscreen   PROC                ;Prozedur zum Abarbeiten der Sachen, die ich am Schluss brauche
+            CALL oldISRback     ;Prozedur zum Widerherstellen der alten ISR
+
             MOV AH, 00h
             MOV AL, 3
             INT 10h             ;Bildschirm loeschen
 
-            CMP DX, OFFSET win  ;Falls der "win"-String in DX schon drinsteht (also man den passenden score erreicht hat)
+            CMP DX, OFFSET win  ;Falls der Offset des Zeigers auf den "win"-String in DX schon drinsteht (also man den passenden score erreicht hat)
             JE Ausgabe          ;Ausgabe
 
             MOV DX, OFFSET lose ;Ansonsten wird der "lose"-String ausgewählt und ausgegeben
