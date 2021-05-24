@@ -111,7 +111,7 @@ hardConfig: MOV counter, 2
             MOV speed, 2
             MOV mode, 3         ;Hard
 
-endStart:   MOV AX, 0h         ;Reset Maus
+endStart:   MOV AX, 0h          ;Reset Maus
             INT 33h
 
             MOV AH, 00h         ;Bildschirm Loeschen
@@ -345,19 +345,19 @@ checkScore  PROC                ;Prozedur um zu gucken ob der Punktestand zum Ge
             JE normalMode
             JNE hardMode        ;Hard, weil mehr Modi gibt es ja nicht
 
-easyMode:   CMP score, 30       ;Falls score gleich 30
+easyMode:   CMP score, 30
             JNE endScore
-            MOV DX, OFFSET win  ;"win"- String auswaehlen
+            MOV DX, OFFSET win
             JMP ende
 
-normalMode: CMP score, 40       ;Falls score gleich 40
+normalMode: CMP score, 40
             JNE endScore
-            MOV DX, OFFSET win  ;"win"- String auswaehlen
+            MOV DX, OFFSET win
             JMP ende
 
-hardMode:   CMP score, 50       ;Falls score gleich 50
+hardMode:   CMP score, 50
             JNE endScore
-            MOV DX, OFFSET win  ;"win"- String auswaehlen
+            MOV DX, OFFSET win
             JMP ende
 
 endScore:   RET
@@ -474,31 +474,31 @@ endCheck:   XOR DI, DI
 checkFood   ENDP
 
 oldISRback  PROC                ;Prozedur zum Wiederherstellen der alten ISR1Ch
-            PUSH DX             ;Um sicherzugehen fall in DX bereits der Offset des Zeigers auf des "win" - String steht
-            PUSH DS             ;Um nicht nochmal das Datensegment reinladen zu muessen
+            PUSH DX
             MOV DX, oldIOFF
             MOV AX, oldISeg
             MOV DS, AX          ;Kleiner Umweg, da man DS nicht direkt beschreiben kann
-                                ;in DS:DX steht jetzt die alte Adresse#
+                                ;in DS:DX steht jetzt die alte Adresse
             MOV AL, 1Ch
             MOV AH, 25h         ;Interrupt setzen
             INT 21h
-            POP DS              ;Reihenfolge!
-            POP DX              ;Nicht vergessen!
+            POP DX
             RET
 oldISRback  ENDP
 
 endscreen   PROC                ;Prozedur zum Abarbeiten der Sachen, die ich am Schluss brauche
             CALL oldISRback     ;Prozedur zum Widerherstellen der alten ISR
+            MOV AX, @DATA       ;Muessen wir nochmal laden, weil DS ueberschrieben wurde
+            MOV DS, AX
 
             MOV AH, 00h
             MOV AL, 3
             INT 10h             ;Bildschirm loeschen
 
-            CMP DX, OFFSET win  ;Falls der Offset des Zeigers auf den "win"-String in DX schon drinsteht (also man den passenden score erreicht hat)
+            CMP DX, OFFSET win  ;Falls der OFFSET des Zeigers vom "win"-String in DX schon drinsteht (also man den passenden score erreicht hat)
             JE Ausgabe          ;Ausgabe
 
-            MOV DX, OFFSET lose ;Ansonsten wird der "lose"-String ausgewählt und ausgegeben
+            MOV DX, OFFSET lose ;Ansonsten wird der OFFSET des Zeigers vom "lose"-String ausgewaehlt und ausgegeben
 ausgabe:    MOV AH, 09h
             INT 21h             ;Zeichenkette darstellen
             RET
