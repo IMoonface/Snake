@@ -18,20 +18,18 @@ printLogo   ENDP
 mausProc    PROC FAR            ;Muss FAR sein, weil vom Interrupt vorgeschrieben!
             MOV AX, video_seg
             MOV ES, AX          ;Bildschirmadresse laden
-
-                                ;DX = vertical cursor position
+            ;DX = Vertikale Cursorposition
             SHR DX, 3           ;Y-Koord/8, weil wir nicht mit den Pixeln arbeiten wollen, sondern mit den Blöcken im Videomodus
             IMUL DX, 160        ;Vorzeichenbehaftete Multiplikation, um die Zeilenbyteadresse auszurechnen y-koord*160 (Siehe Erklaerung)
 
-                                ;CX = horizontal cursor position
+            ;CX = Horizontale Cursorposition
             SHR CX, 3           ;X-Koord/8
             SHL CX, 1           ;X-Koord*2, denn ein Block ist ja 2 Bytes lang
 
             ADD CX, DX          ;In CX steht jetzt unsere Bildschirmposition
             MOV DI, CX          ;Umweg mit DI, weil wir nicht direkt CX benutzen können (Illegal indexing mode)
-
                                 ;Da der Assembler nicht weiß, ob es sich um ein Byte oder Word handelt muessen wir es ihm sagen
-            MOV WORD PTR ES:[DI], 1h ;1h = das was wir auf den Bildschirm schreiben
+            MOV WORD PTR ES:[DI], 1h ;1h = das was wir auf den Bildschirm schreiben, sobald wir die Maus druecken
             RET                 ;Zum zurueckspringen
 mausProc    ENDP
 
@@ -39,17 +37,17 @@ difficulty  PROC
             MOV AX, 0Ch         ;Benutzerdefinierte Unterroutine und Eingabemaske für die Maus festlegen
             PUSH CS             ;Wir benoetigen ES:DX = far pointer to user interrupt, dazu pushen wir CS
             POP ES              ;und laden es in ES
-            MOV CX, 1111110b    ;Wir reagieren jetzt auf alle Tastenoptionen der Maus
+            MOV CX, 1111110b    ;Wir reagieren jetzt auf alle Tastenoptionen der Maus, außer das Bewegen der Maus
+                                ;Routine bei ES: DX wird aufgerufen, wenn ein Ereignis eintritt und das entsprechende Bit in der Benutzermaske gesetzt ist
             MOV DX, OFFSET mausProc ;Wir laden die Adresse von mausProc
             INT 33h             ;Maus Interrupt
-
             MOV AX, 01h         ;Zeige Mauszeiger
             INT 33h
-
-logoLoop:   ;HARD
-            MOV AH, 02h
+diffLoop:
+;Gucken, ob auf einen Buchstaben in "Hard" geklickt wird (56-52 checken)
+            MOV DL, 56
+hardCheck:  MOV AH, 02h
             MOV BH, 0
-            MOV DL, 58
             MOV DH, 16
             INT 10h             ;Cursor setzen
 
@@ -60,10 +58,13 @@ logoLoop:   ;HARD
             CMP AL, 1h
             JE hardConfig
 
-            ;NORMAL
-            MOV AH, 02h
+            DEC DL
+            CMP DL, 52
+            JNE hardCheck
+;Gucken, ob auf einen Buchstaben in "Normal" geklickt wird (42-37 checken)
+            SUB DL, 10  	    ;DL = 42
+normCheck:  MOV AH, 02h
             MOV BH, 0
-            MOV DL, 44
             MOV DH, 16
             INT 10h             ;Cursor setzen
 
@@ -74,10 +75,13 @@ logoLoop:   ;HARD
             CMP AL, 1h
             JE normConfig
 
-            ;EASY
-            MOV AH, 02h
+            DEC DL
+            CMP DL, 36
+            JNE normCheck
+;Gucken, ob auf einen Buchstaben in "Easy" geklickt wird (26-22 checken)
+            SUB DL, 10          ;DL = 26
+easyCheck:  MOV AH, 02h
             MOV BH, 0
-            MOV DL, 28
             MOV DH, 16
             INT 10h             ;Cursor setzen
 
@@ -87,7 +91,11 @@ logoLoop:   ;HARD
 
             CMP AL, 1h
             JE easyConfig
-            JMP logoLoop
+
+            DEC DL
+            CMP DL, 22
+            JNE easyCheck
+            JMP diffLoop
 
 easyConfig: MOV counter, 4
             MOV speed, 4
@@ -128,6 +136,7 @@ printFrame  PROC                ;Prozedur zum Zeichnen des Rahmens
             INT 10h             ;Zeichen schreiben
 
             MOV DH, 1           ;y = 1
+
 ;Zeichnet den linken Rand
 leftSide:   MOV AH, 02h
             MOV BH, 0
@@ -144,6 +153,7 @@ leftSide:   MOV AH, 02h
             INC DH              ;Addiert auf das DH Register eine 1
             CMP DH, 24          ;Wir gehen 24 Zeilen runter
             JNE leftSide        ;Falls nicht equal -> Weiter mit der linken Seite
+
 ;Zeichnet den rechten Rand
 rightSide:  MOV AH, 02h
             MOV BH, 0
@@ -251,6 +261,7 @@ printPoints ENDP
 printSnake  PROC                ;Prozedur um die Schlange zu printen
             CALL printPoints    ;Prozedur um die Punktzahl zu printen
             XOR DI, DI          ;DI (destination index) wird hier als Zeiger genommen
+
 ;Schleife um alle Einträge des snakeX und snakeY Arrays durchzugehen
 printLoop:  MOV AH, 02h
             MOV BH, 0
@@ -294,6 +305,7 @@ deleteTail  ENDP
 resetSnake  PROC                ;Prozedur, um den body der Schlange anzupassen (so sieht es aus als wuerde sie sich bewegen)
             XOR CX, CX
             XOR DI, DI
+
 ;Die Werte des Arrays werden "durchgereicht", also der Wert an Indexstelle 0 bekommt den Wert an Indexstelle 1 . Dieser bekommt wiederrum den an Indexstelle 2 usw.
 resetLoop:  MOV CL, snakeX[DI+1]
             MOV CH, snakeY[DI+1]
@@ -325,6 +337,27 @@ collision   PROC                ;Ueberpruefen ob sich die Schlange selber frisst
             JE ende
             RET
 collision   ENDP
+
+checkScore  PROC                ;Prozedur um zu gucken ob der Punktestand zum Gewinnen erreicht wurde
+            CMP mode, 1         ;Easy
+            JE easyMode
+            CMP mode, 2         ;Normal
+            JE normalMode
+            CMP mode, 3         ;Hard
+            JE hardMode
+            JMP endscore
+
+easyMode:   CMP score, 30
+            JE ende
+
+normalMode: CMP score, 45
+            JE ende
+
+hardMode:   CMP score, 60
+            JE ende
+
+endScore:   RET
+checkScore  ENDP
 
 ;Quelle: https://stackoverflow.com/questions/17855817/generating-a-random-number-within-range-of-0-9-in-x86-8086-assembly
 randomDL    PROC                ;Prozedur um eine Randomzahl für DL zu erzeugen
@@ -379,8 +412,7 @@ endRandDH:  XOR AX, AX
 randomDH    ENDP
 
 printFood   PROC                ;Prozedur um an Randompositionen Futter zu erzeugen
-foodStart:
-            MOV AH, 02h
+foodStart:  MOV AH, 02h
             MOV BH, 0
             MOV DL, randomX
             MOV DH, randomY
@@ -406,27 +438,6 @@ endFood:    MOV AH, 09h
             INT 10h             ;Zeichen schreiben
             RET
 printFood   ENDP
-
-checkScore  PROC                ;Prozedur um zu gucken ob der Punktestand zum Gewinnen erreicht wurde
-            CMP mode, 1         ;Easy
-            JE easyMode
-            CMP mode, 2         ;Normal
-            JE normalMode
-            CMP mode, 3         ;Hard
-            JE hardMode
-            JMP endscore
-
-easyMode:   CMP score, 30
-            JE ende
-
-normalMode: CMP score, 45
-            JE ende
-
-hardMode:   CMP score, 60
-            JE ende
-
-endScore:   RET
-checkScore  ENDP
 
 checkFood   PROC                ;Prozedur um zu sehen ob der Kopf der Schlange mit der Position des Futters uebereinstimmt
             XOR DI, DI

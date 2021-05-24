@@ -235,7 +235,6 @@ escape:     MOV AH, 00h
 calls:      CALL collision
             CALL printSnake
             CALL deleteTail
-            CMP score, 100      ;Weil es ansonsten irgendwann die Zero Flag setzt (seltsamer Bug)
             JMP waitForKey      ;Zurueck zur Endlosschleife
 
 ende:       CALL endscreen
