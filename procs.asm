@@ -398,6 +398,7 @@ randomDL    PROC                ;Prozedur um eine Randomzahl für DL zu erzeugen
 
             MOV AX, DX          ;DX in AX rein
             XOR DX, DX          ;DX leeren
+            XOR CX, CX          ;CX leeren
             MOV CX, 10          ;CX bekommt die 10
             DIV CX              ;AX/10 weil wir nur die Ganzzahl brauchen
                                 ;Liegt der <Quelloperand> im 16-Bit-Format vor, dann steht das Ergebnis der Division im Registerpaar AX:DX
@@ -423,6 +424,7 @@ randomDH    PROC                ;Prozedur um eine Randomzahl für DH zu erzeugen
 
             MOV AX, DX
             XOR DX, DX
+            XOR CX, CX
             MOV CX, 10
             DIV CX
             CMP DL, 0
