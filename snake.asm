@@ -10,14 +10,17 @@
 ;Prinzip:
 ;Zuerst waehlt man einen Schwierigkeitsgrad
 ;    easy (mode = 1):
-;            - speed = 4
-;            - man muss 30 Punkte erreichen
-;    normal (mode = 2):
 ;            - speed = 3
-;            - man muss 40 Punkte erreichen
+;            - man muss 30 Punkte erreichen
+;            - ab 15 Punkten erhoeht sich die Geschwindigkeit
 ;    normal (mode = 2):
 ;            - speed = 2
+;            - man muss 40 Punkte erreichen
+;            - ab 20 Punkten erhoeht sich die Geschwindigkeit
+;    hard (mode = 3):
+;            - speed = 1
 ;            - man muss 50 Punkte erreichen
+;            - ab 30 Punkten erhoeht sich die Geschwindigkeit
 ;
 ;Mit WASD kann man dann die Schlange steuern.
 ;Wenn man das Futter einsammelt verlaengert sich die Schlange.
@@ -41,7 +44,7 @@ video_seg   = 0B800h          ;Adresse der VGA Grafikkarte fuer den Textmodus
             .DATA
 ;***************************** DATASEGMENT ************************************
 ;Schlangen-Array
-snakeX      DB  5,  6,  7,  8, 50 dup(0) ;"60 Duplikate von 0", die ersten 4 Indexe haben Werte fuer die Positionen, wo die Schlange starten soll, der Rest ist 0
+snakeX      DB  5,  6,  7,  8, 50 dup(0) ;"50 Duplikate von 0", die ersten 4 Indexe haben Werte fuer die Positionen, wo die Schlange starten soll, der Rest ist 0
 snakeY      DB 10, 10, 10, 10, 50 dup(0)
 snakeSize   DW 3                         ;Gibt an wie lang die Schlange ist
 

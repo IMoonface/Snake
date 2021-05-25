@@ -358,20 +358,35 @@ checkScore  PROC                ;Prozedur um zu gucken ob der Punktestand zum Ge
             JE normalMode
             JNE hardMode        ;Hard, weil mehr Modi gibt es ja nicht
 
-easyMode:   CMP score, 30       ;Falls man die Punktezahl 30 erreicht hat
+easyMode:   CMP score, 15       ;Ab 15 Punkten erhoeht sich die Geschwindigkeit
+            JE easyDEC
+            CMP score, 30       ;Falls man die Punktezahl 30 erreicht hat
             JNE endScore
             MOV DX, OFFSET win  ;DX bekommt den OFFSET des Zeigers der den "win" - String angibt
             JMP ende
 
-normalMode: CMP score, 40       ;Falls man die Punktezahl 40 erreicht hat
+easyDEC:    DEC speed
+            JMP endScore
+
+normalMode: CMP score, 20       ;Ab 20 Punkten erhoeht sich die Geschwindigkeit
+            JE normalDEC
+            CMP score, 40       ;Falls man die Punktezahl 40 erreicht hat
             JNE endScore
             MOV DX, OFFSET win  ;DX bekommt den OFFSET des Zeigers der den "win" - String angibt
             JMP ende
 
-hardMode:   CMP score, 50       ;Falls man die Punktezahl 50 erreicht hat
+normalDEC:  DEC speed
+            JMP endScore
+
+hardMode:   CMP score, 30       ;Ab 30 Punkten erhoeht sich die Geschwindigkeit
+            JE hardDEC
+            CMP score, 50       ;Falls man die Punktezahl 50 erreicht hat
             JNE endScore
             MOV DX, OFFSET win  ;DX bekommt den OFFSET des Zeigers der den "win" - String angibt
             JMP ende
+
+hardDEC:    DEC speed
+            JMP endScore
 
 endScore:   RET
 checkScore  ENDP
@@ -487,7 +502,8 @@ endCheck:   XOR DI, DI
 checkFood   ENDP
 
 oldISRback  PROC                ;Prozedur zum Wiederherstellen der alten ISR1Ch
-            PUSH DX
+            PUSH DX             ;Sicherheitshalber falls der OFFSET des Zeigers der den "win"-String angibt schon in DX steht
+            PUSH DS             ;Koennte Eventuell Probleme machen
             MOV DX, oldIOFF
             MOV AX, oldISeg
             MOV DS, AX          ;Kleiner Umweg, da man DS nicht direkt beschreiben kann
@@ -495,14 +511,13 @@ oldISRback  PROC                ;Prozedur zum Wiederherstellen der alten ISR1Ch
             MOV AL, 1Ch
             MOV AH, 25h         ;Interrupt setzen
             INT 21h
+            POP DS              ;Reihenfolge beachten!
             POP DX
             RET
 oldISRback  ENDP
 
 endscreen   PROC                ;Prozedur zum Abarbeiten der Sachen, die ich am Schluss brauche
             CALL oldISRback     ;Prozedur zum Widerherstellen der alten ISR
-            MOV AX, @DATA       ;Muessen wir nochmal laden, weil DS ueberschrieben wurde
-            MOV DS, AX
 
             MOV AH, 00h
             MOV AL, 3
