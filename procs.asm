@@ -236,8 +236,8 @@ printPoints PROC                ;Prozedur um die Punktzahl mit Potenzzerlegung z
             JMP printEiner      ;Ansonsten printe nur die Einerstelle
 
 zehner:     XOR BL, BL
-            MOV BL, 0Ah         ;0Ah = 10
-            DIV BL              ;AX/BL. Schreibt das Ergebnis in AL und den Rest in AH
+            MOV BL, 10          ;Es geht auch 0Ah
+            DIV BL              ;Wurde AX durch einen 8-Bit-Wert geteilt, so steht der Quotient im AL-Register und der Rest im AH-Register
             ADD AL, '0'         ;Addiert eine 48 (ASCII Wert fuer 0), um es als Zeichen darzustellen
 
             MOV divrest, AH     ;In divrest ist jetzt der Rest der Division
@@ -314,7 +314,7 @@ deleteTail  PROC                ;Prozedur um den Schwanz der Schlange zu loesche
             RET
 deleteTail  ENDP
 
-resetSnake  PROC                ;Prozedur, um den body der Schlange anzupassen (so sieht es aus als wuerde sie sich bewegen)
+resetSnake  PROC                ;Prozedur um den body der Schlange anzupassen (so sieht es aus als wuerde sie sich bewegen)
             XOR CX, CX
             XOR DI, DI
 
@@ -378,7 +378,7 @@ normalMode: CMP score, 20       ;Ab 20 Punkten erhoeht sich die Geschwindigkeit
 normalDEC:  DEC speed
             JMP endScore
 
-hardMode:   CMP score, 30       ;Ab 30 Punkten erhoeht sich die Geschwindigkeit
+hardMode:   CMP score, 35       ;Ab 30 Punkten erhoeht sich die Geschwindigkeit
             JE hardDEC
             CMP score, 50       ;Falls man die Punktezahl 50 erreicht hat
             JNE endScore
@@ -400,7 +400,8 @@ randomDL    PROC                ;Prozedur um eine Randomzahl für DL zu erzeugen
             XOR DX, DX          ;DX leeren
             MOV CX, 10          ;CX bekommt die 10
             DIV CX              ;AX/10 weil wir nur die Ganzzahl brauchen
-                                ;In DL steht jetzt das Ergebnis der Division
+                                ;Liegt der <Quelloperand> im 16-Bit-Format vor, dann steht das Ergebnis der Division im Registerpaar AX:DX
+                                ;In DL steht der Rest
             CMP DL, 0
             JE istNull
             JMP endRandDL

@@ -44,8 +44,8 @@ video_seg   = 0B800h          ;Adresse der VGA Grafikkarte fuer den Textmodus
             .DATA
 ;***************************** DATASEGMENT ************************************
 ;Schlangen-Array
-snakeX      DB  5,  6,  7,  8, 50 dup(0) ;"50 Duplikate von 0", die ersten 4 Indexe haben Werte fuer die Positionen, wo die Schlange starten soll, der Rest ist 0
-snakeY      DB 10, 10, 10, 10, 50 dup(0)
+snakeX      DB  5,  6,  7,  8, 1000 dup(0) ;"50 Duplikate von 0", die ersten 4 Indexe haben Werte fuer die Positionen, wo die Schlange starten soll, der Rest ist 0
+snakeY      DB 10, 10, 10, 10, 1000 dup(0)
 snakeSize   DW 3                         ;Gibt an wie lang die Schlange ist
 
 ;Scorevariablen
@@ -137,95 +137,75 @@ waitLoop:   CMP counter, 0
             INT 16h             ;Liest das letzte Zeichen aus den Tastaturbuffer aus und speichert es in AL
 
             CMP AL, 77h         ;W
-            JE up
+            JE moveUp
             CMP AL, 73h         ;S
-            JE down
+            JE moveDown
             CMP AL, 61h         ;A
-            JE left
+            JE moveLeft
             CMP AL, 64h         ;D
-            JE right
+            JE moveRight
             CMP AL, 1Bh         ;ESC
             JE escape
             JNE nobutton        ;Falls kein Button gedrueckt wurde...
 
 noButton:   CMP movflag, 1
-            JE up               ;...wird ueberprueft welche movflag derzeit aktiv ist und der letzte zutreffende Fall wird wiederholt
+            JE moveUP           ;...wird ueberprueft welche movflag derzeit aktiv ist und der letzte zutreffende Fall wird wiederholt
             CMP movflag, 2
-            JE down
+            JE moveDown
             CMP movflag, 3
-            JE left
+            JE moveLeft
             CMP movflag, 4
-            JE right
+            JE moveRight
 
-up:         CMP movflag, 2      ;Um zu verhindern, dass man direkt nach down nicht wieder up machen kann
+moveUp:     CMP movflag, 2      ;Um zu verhindern, dass man direkt nach down nicht wieder up machen kann
             JE noButton         ;JMP Equal zu noButton (ist dann so als haette man keinen Button gedrueckt)
             XOR BX, BX
             MOV BH, -1          ;Kleiner Fix, weil ansonsten das neue Element im Schlangen Array an die Stelle
                                 ;der derzeitigen Position geschrieben werden wuerde und man so nochmal warten muesste
                                 ;bis sich die Schlange "aktualisiert" (Siehe Erklaerung)
-            CALL moveUp
+            MOV movflag, 1      ;movflag gibt die zuletzt gegangene Richtung an hier "hoch"
+            CALL checkFood      ;Aufruf der Prozedur um zu sehen ob der Kopf der Schlange mit der Position des Futters uebereinstimmt
+            CALL resetSnake     ;Aufruf der Prozedur um den body der Schlange anzupassen
+            DEC snakeY[DI]      ;(Siehe Erklaerung)
+            CMP snakeY[DI], 0   ;Gucken ob die Grenzen getroffen wurden
+            JE ende             ;Falls die Grenzen getroffen wurde -> Endroutine
             JMP calls
 
-down:       CMP movflag, 1      ;Um zu verhindern, dass man direkt nach up nicht wieder down machen kann
+moveDown:   CMP movflag, 1      ;Um zu verhindern, dass man direkt nach up nicht wieder down machen kann
             JE noButton
             XOR BX, BX
             MOV BH, 1
-            CALL moveDown
-            JMP calls
-
-left:       CMP movflag, 4      ;Um zu verhindern, dass man direkt nach right nicht wieder left machen kann
-            JE noButton
-            XOR BX, BX
-            MOV BL, -1
-            CALL moveLeft
-            JMP calls
-
-right:      CMP movflag, 3      ;Um zu verhindern, dass man direkt nach left nicht wieder right machen kann
-            JE noButton
-            XOR BX, BX
-            MOV BL, 1
-            CALL moveRight
-            JMP calls
-
-moveUp      PROC                ;Musste ich als Prozedur machen, weil es irgendwann zu weit weg war um es mit JE zu erreichen
-            MOV movflag, 1
-            CALL checkFood      ;Aufruf der Prozedur um zu sehen ob der Kopf der Schlange mit der Position des Futters uebereinstimmt
-            CALL resetSnake
-            DEC snakeY[DI]
-            CMP snakeY[DI], 0   ;Gucken ob die Grenzen getroffen wurden
-            JE ende             ;Falls die Grenzen getroffen wurde -> Endroutine
-            RET
-moveUp      ENDP
-
-moveDown    PROC
             MOV movflag, 2
             CALL checkFood
             CALL resetSnake
             INC snakeY[DI]
             CMP snakeY[DI], 22
             JE ende
-            RET
-moveDown    ENDP
+            JMP calls
 
-moveLeft    PROC
+moveLeft:   CMP movflag, 4      ;Um zu verhindern, dass man direkt nach right nicht wieder left machen kann
+            JE noButton
+            XOR BX, BX
+            MOV BL, -1
             MOV movflag, 3
             CALL checkFood
             CALL resetSnake
             DEC snakeX[DI]
             CMP snakeX[DI], 0
             JE ende
-            RET
-moveLeft    ENDP
+            JMP calls
 
-moveRight   PROC
+moveRight:  CMP movflag, 3      ;Um zu verhindern, dass man direkt nach left nicht wieder right machen kann
+            JE noButton
+            XOR BX, BX
+            MOV BL, 1
             MOV movflag, 4
             CALL checkFood
             CALL resetSnake
             INC snakeX[DI]
             CMP snakeX[DI], 79
             JE ende
-            RET
-moveRight   ENDP
+            JMP calls
 
 escape:     CALL oldISRback     ;Prozedur zum Widerherstellen der alten ISR1Ch
             MOV AH, 00h
