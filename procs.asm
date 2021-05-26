@@ -378,7 +378,7 @@ normalMode: CMP score, 20       ;Ab 20 Punkten erhoeht sich die Geschwindigkeit
 normalDEC:  DEC speed
             JMP endScore
 
-hardMode:   CMP score, 35       ;Ab 30 Punkten erhoeht sich die Geschwindigkeit
+hardMode:   CMP score, 35       ;Ab 35 Punkten erhoeht sich die Geschwindigkeit
             JE hardDEC
             CMP score, 50       ;Falls man die Punktezahl 50 erreicht hat
             JNE endScore
@@ -403,11 +403,20 @@ randomDL    PROC                ;Prozedur um eine Randomzahl für DL zu erzeugen
             DIV CX              ;AX/10 weil wir nur die Ganzzahl brauchen
                                 ;Liegt der <Quelloperand> im 16-Bit-Format vor, dann steht das Ergebnis der Division im Registerpaar AX:DX
                                 ;In DL steht der Rest
-            CMP DL, 0
-            JE istNull
+            CMP DL, 0           ;Kleiner Fix um sicherzugehen, dass keine kleinere Zahl als 1 rauskommt
+            JLE istNullDL
+            CMP DL, 9           ;Kleiner Fix um sicherzugehen, dass keine groeßere Zahl als 9 rauskommt
+            JG tooBigDL         ;Falls es goeßer als 9 sein sollte
             JMP endRandDL
 
-istNull:    INC DL              ;Damit wir keine 0 bekommen
+istNullDL:  INC DL              ;Inkrementiere DL solange
+            CMP DL, 1           ;bis DL = 1 ist
+            JNE istNullDL
+            JMP endRandDL
+
+tooBigDL:   DEC DL              ;Dekrementiere DL solange
+            CMP DL, 9           ;bis DL = 9 ist
+            JNE tooBigDL
 
 endRandDL:  XOR AX, AX
             XOR BX, BX
@@ -428,14 +437,23 @@ randomDH    PROC                ;Prozedur um eine Randomzahl für DH zu erzeugen
             MOV CX, 10
             DIV CX
             CMP DL, 0
-            JE istNull2         ;Selbe wie oben
+            JLE istNullDH       ;Selbe wie oben
             CMP DL, 1
             JE istEins
+            CMP DL, 9
+            JG tooBigDH
             JMP endRandDH
 
-istNull2:   INC DL              ;Damit wir keine 0 bekommen
+istNullDH:  INC DL              ;Damit wir min. eine 1 bekommen
+            CMP DL, 1
+            JNE istNullDH
 
-istEins:    INC DL              ;Damit wir keine 1 bekommen
+istEins:    INC DL              ;Damit wir min. eine 2 bekommen
+            JMP endRandDH
+
+tooBigDH:   DEC DL              ;Damit wir max. eine 9 bekommen
+            CMP DL, 9
+            JNE tooBigDH
 
 endRandDH:  XOR AX, AX
             XOR BX, BX
