@@ -523,7 +523,6 @@ endCheck:   XOR DI, DI
 checkFood   ENDP
 
 oldISRback  PROC                ;Prozedur zum Wiederherstellen der alten ISR1Ch
-            PUSH DX             ;Sicherheitshalber falls der OFFSET des Zeigers der den "win"-String angibt schon in DX steht
             PUSH DS             ;Koennte Eventuell Probleme machen
             MOV DX, oldIOFF
             MOV AX, oldISeg
@@ -533,13 +532,10 @@ oldISRback  PROC                ;Prozedur zum Wiederherstellen der alten ISR1Ch
             MOV AH, 25h         ;Interrupt setzen
             INT 21h
             POP DS              ;Reihenfolge beachten!
-            POP DX
             RET
 oldISRback  ENDP
 
 endscreen   PROC                ;Prozedur zum Abarbeiten der Sachen, die ich am Schluss brauche
-            CALL oldISRback     ;Prozedur zum Widerherstellen der alten ISR
-
             MOV AH, 00h
             MOV AL, 3
             INT 10h             ;Bildschirm loeschen

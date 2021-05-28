@@ -40,7 +40,7 @@
 ;==============================================================================
             .MODEL SMALL
             .386
-video_seg   = 0B800h          ;Adresse der VGA Grafikkarte fuer den Textmodus
+video_seg   = 0B800h            ;Adresse der VGA Grafikkarte fuer den Textmodus
             .DATA
 ;***************************** DATASEGMENT ************************************
 ;Schlangen-Array
@@ -221,6 +221,7 @@ calls:      CALL collision
             JMP waitForKey      ;Zurueck zur Endlosschleife
 
 ende:       CALL endscreen      ;Prozedur zum Abarbeiten der Sachen, die ich am Schluss brauche
+            CALL oldISRback     ;Prozedur zum Widerherstellen der alten ISR
             MOV AH, 4Ch
             INT 21h             ;Zurueck zu DOS
             .STACK 100h         ;Wo wir auf den Stack starten wollen
