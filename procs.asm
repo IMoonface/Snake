@@ -29,7 +29,7 @@ mausProc    PROC FAR            ;Muss FAR sein, weil vom Interrupt vorgeschriebe
             ADD CX, DX          ;In CX steht jetzt unsere Bildschirmposition
             MOV DI, CX          ;Umweg mit DI, weil wir nicht direkt CX benutzen können (Illegal indexing mode)
                                 ;Da der Assembler nicht weiß, ob es sich um ein Byte oder Word handelt muessen wir es ihm sagen
-            MOV WORD PTR ES:[DI], 1h ;das was wir auf den Bildschirm schreiben, sobald wir die Maus druecken (das Zeichen brauchen wir nur fuer den Vergleich)
+            MOV WORD PTR ES:[DI], 1h ;1h = Das was wir an die Stelle der Maus zeichnen, sobald diese gedrueckt wird (Brauchen wir nur fuer den Vergleich)
             CALL checkPosi      ;Prozedur um zu checken, ob man Easy, Normal oder Hard angeklickt hat
 
             MOV AX, 01h         ;Zeige Mauszeiger, damit das Zeichen was wir geschrieben haben nicht den Mauszeiger verdeckt
