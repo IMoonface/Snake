@@ -17,7 +17,7 @@ printLogo   ENDP
 
 mausProc    PROC FAR            ;Muss FAR sein, weil vom Interrupt vorgeschrieben!
             MOV AX, video_seg
-            MOV ES, AX          ;Bildschirmadresse laden
+            MOV ES, AX          ;Um in den Videospeicher schreiben zu können, setzt man ES auf 0b800h
             ;DX = Vertikale Cursorposition
             SHR DX, 3           ;Y-Koord/8, weil wir nicht mit den Pixeln arbeiten wollen, sondern mit den Blöcken im Videomodus
             IMUL DX, 160        ;Vorzeichenbehaftete Multiplikation, um die Zeilenbyteadresse auszurechnen y-koord*160 (Siehe Erklaerung)

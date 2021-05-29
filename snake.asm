@@ -40,7 +40,7 @@
 ;==============================================================================
             .MODEL SMALL
             .386
-video_seg   = 0B800h            ;Adresse der VGA Grafikkarte fuer den Textmodus
+video_seg   = 0B800h            ;Um in den Videospeicher zu schreiben
             .DATA
 ;***************************** DATASEGMENT ************************************
 ;Schlangen-Array
@@ -80,7 +80,7 @@ ISR1Ch:     PUSH DS             ;Alle Register die in einer ISR benutzt werden m
             IRET
 
 beginn:     MOV AX, @DATA       ;Adresse des Datensegments in das Register „AX“ laden
-            MOV DS, AX          ;In das Segmentregister „DS“ uebertragen
+            MOV DS, AX          ;In DS uebertragen
                                 ;(das DS-Register kann nicht direkt mit einer Konstante beschrieben werden)
             MOV AL, 1Ch
             MOV AH, 35h
