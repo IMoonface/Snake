@@ -1,11 +1,11 @@
 ;==============================================================================
-;Abschlussprogramm fuer das Modul "Assemblerprogrammierung" bei Prof. Krämer
+;Abschlussprogramm fuer das Modul "Assemblerprogrammierung" bei Prof. Kraemer
 ;Jahrgang: 18-INB2
 ;Titel: Snake
 ;Programmed by: Marc Uxa
 ;==============================================================================
 ;Ziel:
-;Man muss versuchen durch das Einsammeln des Futters die Schlange zu sättigen.
+;Man muss versuchen durch das Einsammeln des Futters die Schlange zu saettigen.
 ;==============================================================================
 ;Prinzip:
 ;Zuerst waehlt man einen Schwierigkeitsgrad
@@ -34,7 +34,7 @@
 ;   - moveRight
 ;
 ;Besonderheiten:
-;   - eigene Interrupt Service Routine für ISR1Ch
+;   - eigene Interrupt Service Routine fuer ISR1Ch
 ;   - eigene Maus Unterroutine (AH = 0Ch)
 ;   - Videomodus 3
 ;==============================================================================
@@ -114,8 +114,8 @@ beginn:     MOV AX, @DATA       ;Adresse des Datensegments in das Register „AX
             CALL printScore     ;Aufruf der Prozedur um "Score" zu printen
             CALL printSnake     ;Aufruf der Prozedur zum Zeichnen der Schlange
             CALL deleteTail     ;Aufruf der Prozedur um den Schwanz der Schlange zu loeschen
-            CALL randomDL       ;Aufruf der Prozedur um eine Randomzahl für DL zu erzeugen
-            CALL randomDH       ;Aufruf der Prozedur um eine Randomzahl für DL zu erzeugen
+            CALL randomDL       ;Aufruf der Prozedur um eine Randomzahl fuer DL zu erzeugen
+            CALL randomDH       ;Aufruf der Prozedur um eine Randomzahl fuer DL zu erzeugen
             CALL printFood      ;Aufruf der Prozedur um an Randompositionen Futter zu erzeugen
 
 waitForKey: MOV AH, 0Ch

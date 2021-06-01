@@ -17,9 +17,9 @@ printLogo   ENDP
 
 mausProc    PROC FAR            ;Muss FAR sein, weil vom Interrupt vorgeschrieben!
             MOV AX, video_seg
-            MOV ES, AX          ;Um in den Videospeicher schreiben zu können, setzt man ES auf 0b800h
+            MOV ES, AX          ;Um in den Videospeicher schreiben zu koennen, setzt man ES auf 0b800h
             ;DX = Vertikale Cursorposition
-            SHR DX, 3           ;Y-Koord/8, weil wir nicht mit den Pixeln arbeiten wollen, sondern mit den Blöcken im Videomodus
+            SHR DX, 3           ;Y-Koord/8, weil wir nicht mit den Pixeln arbeiten wollen, sondern mit den Bloecken im Videomodus
             IMUL DX, 160        ;Vorzeichenbehaftete Multiplikation, um die Zeilenbyteadresse auszurechnen y-koord*160 (Siehe Erklaerung)
 
             ;CX = Horizontale Cursorposition
@@ -27,7 +27,7 @@ mausProc    PROC FAR            ;Muss FAR sein, weil vom Interrupt vorgeschriebe
             SHL CX, 1           ;X-Koord*2, denn ein Block ist ja 2 Bytes lang
 
             ADD CX, DX          ;In CX steht jetzt unsere Bildschirmposition
-            MOV DI, CX          ;Umweg mit DI, weil wir nicht direkt CX benutzen können (Illegal indexing mode)
+            MOV DI, CX          ;Umweg mit DI, weil wir nicht direkt CX benutzen koennen (Illegal indexing mode)
                                 ;Da der Assembler nicht weiß, ob es sich um ein Byte oder Word handelt muessen wir es ihm sagen
             MOV WORD PTR ES:[DI], 1h ;1h = Das was wir an die Stelle der Maus zeichnen, sobald diese gedrueckt wird (Brauchen wir nur fuer den Vergleich)
             CALL checkPosi      ;Prozedur um zu checken, ob man Easy, Normal oder Hard angeklickt hat
@@ -109,7 +109,7 @@ endPosi:    RET
 checkPosi   ENDP
 
 difficulty  PROC
-            MOV AX, 0Ch         ;Benutzerdefinierte Unterroutine und Eingabemaske für die Maus festlegen
+            MOV AX, 0Ch         ;Benutzerdefinierte Unterroutine und Eingabemaske fuer die Maus festlegen
             PUSH CS             ;Wir benoetigen ES:DX = far pointer to user interrupt, dazu pushen wir CS
             POP ES              ;und laden es in ES
             MOV CX, 1111110b    ;Wir reagieren jetzt auf alle Tastenoptionen der Maus (außer das Bewegen der Maus)
@@ -197,7 +197,7 @@ rightSide:  MOV AH, 02h
             MOV CX, 80
             INT 10h             ;Zeichen schreiben
 
-            ;Um eine kleine Gap zulassen für den "score"-String
+            ;Um eine kleine Gap zulassen fuer den "score"-String
             MOV AH, 02h
             MOV BH, 0
             MOV DL, 0
@@ -274,7 +274,7 @@ printSnake  PROC                ;Prozedur um die Schlange zu printen
             CALL printPoints    ;Prozedur um die Punktzahl zu printen
             XOR DI, DI          ;DI (destination index) wird hier als Zeiger genommen
 
-;Schleife um alle Einträge des snakeX und snakeY Arrays durchzugehen
+;Schleife um alle Eintraege des snakeX und snakeY Arrays durchzugehen
 printLoop:  MOV AH, 02h
             MOV BH, 0
             MOV DL, snakeX[DI]
@@ -392,15 +392,16 @@ endScore:   RET
 checkScore  ENDP
 
 ;Quelle: https://stackoverflow.com/questions/17855817/generating-a-random-number-within-range-of-0-9-in-x86-8086-assembly
-randomDL    PROC                ;Prozedur um eine Randomzahl für DL zu erzeugen
-            MOV AH, 00h         ;Interrupt um die Systemzeit zu erhalten
-            INT 1Ah             ;In CX:DX ist jetzt die Anzahl der clock ticks seit Mitternacht
+randomDL    PROC                ;Prozedur um eine Randomzahl fuer DL zu erzeugen
+            MOV AH, 00h         ;Interrupt um die Systemzeit zu erhalten, CX Hoeherer Teil der Taktzaehlung, DX Niederwertiger Teil der Taktzaehlung
+            INT 1Ah             ;Der "System-Timer" (im Unterschied zum realen Zeitschaltuhr) ist der Timer, der eingestellt wird, wenn das System
+                                ;gestartet ist. Diese Zeit ist voruebergehend und dauert nur solange das System eingeschaltet ist.
 
             MOV AX, DX          ;DX in AX rein
             XOR DX, DX          ;DX leeren
             XOR CX, CX          ;CX leeren
             MOV CX, 10          ;CX bekommt die 10
-            DIV CX              ;AX/10 weil wir nur die Ganzzahl brauchen
+            DIV CX              ;AX/10 weil wir nur eine Ganzzahl brauchen
                                 ;Liegt der <Quelloperand> im 16-Bit-Format vor, dann steht das Ergebnis der Division im Registerpaar AX:DX
                                 ;In DL steht der Rest
             CMP DL, 0           ;Kleiner Fix um sicherzugehen, dass keine kleinere Zahl als 1 rauskommt
@@ -423,11 +424,11 @@ endRandDL:  XOR AX, AX
             MOV AL, DL
             MOV BL, 8
             MUL BL              ;Multiplikation mit 8, max Wert: 8*9 = 72
-            MOV randomX, AL     ;In randomX steht jetzt die Pseudorandomzahl für die x-Achse
+            MOV randomX, AL     ;In randomX steht jetzt die Pseudorandomzahl fuer die x-Achse
             RET
 randomDL    ENDP
 
-randomDH    PROC                ;Prozedur um eine Randomzahl für DH zu erzeugen
+randomDH    PROC                ;Prozedur um eine Randomzahl fuer DH zu erzeugen
             MOV AH, 00h
             INT 1Ah
 
@@ -479,8 +480,8 @@ foodStart:  MOV AH, 02h
             JE unterSnake       ;falls es doch so ist
             JMP endFood
 
-unterSnake: CALL randomDL       ;Neuer Randomwert für DL
-            CALL randomDH       ;Neuer Randomwert für DH
+unterSnake: CALL randomDL       ;Neuer Randomwert fuer DL
+            CALL randomDH       ;Neuer Randomwert fuer DH
             JMP foodStart       ;Von vorne anfangen
 
 endFood:    MOV AH, 09h
