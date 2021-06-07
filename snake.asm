@@ -79,7 +79,7 @@ ISR1Ch:     PUSH DS             ;Alle Register die in einer ISR benutzt werden m
             POP DS
             IRET
 
-beginn:     MOV AX, @DATA       ;Adresse des Datensegments in das Register „AX“ laden
+begin:      MOV AX, @DATA       ;Adresse des Datensegments in das Register „AX“ laden
             MOV DS, AX          ;In DS uebertragen
                                 ;(das DS-Register kann nicht direkt mit einer Konstante beschrieben werden)
             MOV AL, 1Ch
@@ -130,7 +130,7 @@ waitLoop:   CMP counter, 0
             JNE waitLoop        ;Warten bis der Interrupt den counter runtergezaehlt hat
 
             MOV AH, 01h         ;ZF = 1: kein wartendes Zeichen. ZF = 0: ein Zeichen steht zur Abholung bereit.
-            INT 16h             ;Keyboard Status ohne Abholung des Zeichens (von Ihnen) ;
+            INT 16h             ;Keyboard Status ohne Abholung des Zeichens (von Ihnen)
             JZ nobutton         ;JMP if ZF gesetzt (ZF = 1).
 
             MOV AH, 00h
@@ -167,8 +167,6 @@ moveUp:     CMP movflag, 2      ;Um zu verhindern, dass man direkt nach down nic
             CALL checkFood      ;Aufruf der Prozedur um zu sehen ob der Kopf der Schlange mit der Position des Futters uebereinstimmt
             CALL resetSnake     ;Aufruf der Prozedur um den body der Schlange anzupassen
             DEC snakeY[DI]      ;(Siehe Erklaerung)
-            CMP snakeY[DI], 0   ;Gucken ob die Grenzen getroffen wurden
-            JE ende             ;Falls die Grenzen getroffen wurde -> Endroutine
             JMP calls
 
 moveDown:   CMP movflag, 1      ;Um zu verhindern, dass man direkt nach up nicht wieder down machen kann
@@ -179,8 +177,6 @@ moveDown:   CMP movflag, 1      ;Um zu verhindern, dass man direkt nach up nicht
             CALL checkFood
             CALL resetSnake
             INC snakeY[DI]
-            CMP snakeY[DI], 22
-            JE ende
             JMP calls
 
 moveLeft:   CMP movflag, 4      ;Um zu verhindern, dass man direkt nach right nicht wieder left machen kann
@@ -191,8 +187,6 @@ moveLeft:   CMP movflag, 4      ;Um zu verhindern, dass man direkt nach right ni
             CALL checkFood
             CALL resetSnake
             DEC snakeX[DI]
-            CMP snakeX[DI], 0
-            JE ende
             JMP calls
 
 moveRight:  CMP movflag, 3      ;Um zu verhindern, dass man direkt nach left nicht wieder right machen kann
@@ -203,26 +197,23 @@ moveRight:  CMP movflag, 3      ;Um zu verhindern, dass man direkt nach left nic
             CALL checkFood
             CALL resetSnake
             INC snakeX[DI]
-            CMP snakeX[DI], 79
-            JE ende
             JMP calls
 
-escape:     CALL oldISRback     ;Prozedur zum Widerherstellen der alten ISR1Ch
+escape:     CALL oldISRback     ;Aufruf der Prozedur zum Widerherstellen der alten ISR1Ch
             MOV AH, 00h
             MOV AL, 3
             INT 10h             ;Bildschirm Loeschen
-
             MOV AH, 4Ch
             INT 21h             ;Zurueck zu DOS
 ;CALLs die am Ende (egal ob gedrueckter Button oder nicht) gebraucht werden ausgelaggert in ein Label
-calls:      CALL collision
+calls:      CALL collision      ;Prozedur um zu gucken ob sich die Schlange selber frisst oder der Rahmen berueht wurde
             CALL printSnake
             CALL deleteTail
             JMP waitForKey      ;Zurueck zur Endlosschleife
 
-ende:       CALL endscreen      ;Prozedur zum Abarbeiten der Sachen, die ich am Schluss brauche
-            CALL oldISRback     ;Prozedur zum Widerherstellen der alten ISR
+ende:       CALL endscreen      ;Aufruf der Prozedur zum Abarbeiten der Sachen die ich am Schluss brauche
+            CALL oldISRback     ;Aufruf der Prozedur zum Widerherstellen der alten ISR
             MOV AH, 4Ch
             INT 21h             ;Zurueck zu DOS
             .STACK 100h         ;Wo wir auf den Stack starten wollen
-            end beginn
+            end begin

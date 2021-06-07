@@ -104,7 +104,6 @@ normConfig: MOV counter, 3
 hardConfig: MOV counter, 2
             MOV speed, 2
             MOV mode, 3         ;Hard
-
 endPosi:    RET
 checkPosi   ENDP
 
@@ -120,8 +119,7 @@ difficulty  PROC
             INT 33h
 
 diffLoop:   CMP mode, 0
-            JG endDiff
-            JMP diffLoop
+            JE diffLoop
 
 endDiff:    MOV AX, 0h          ;Reset Maus
             INT 33h
@@ -148,7 +146,6 @@ printFrame  PROC                ;Prozedur zum Zeichnen des Rahmens
             INT 10h             ;Zeichen schreiben
 
             MOV DH, 1           ;y = 1
-
 ;Zeichnet den linken Rand
 leftSide:   MOV AH, 02h
             MOV BH, 0
@@ -272,10 +269,11 @@ printPoints ENDP
 
 printSnake  PROC                ;Prozedur um die Schlange zu printen
             CALL printPoints    ;Prozedur um die Punktzahl zu printen
-            XOR DI, DI          ;DI (destination index) wird hier als Zeiger genommen
-
+            XOR DI, DI
+            DEC DI              ;DI (destination index) wird hier als Zeiger genommen
 ;Schleife um alle Eintraege des snakeX und snakeY Arrays durchzugehen
-printLoop:  MOV AH, 02h
+printLoop:  INC DI              ;DI hochzaehlen (musste ich leider so ungeschickt loesen)
+            MOV AH, 02h
             MOV BH, 0
             MOV DL, snakeX[DI]
             MOV DH, snakeY[DI]  ;Setzt den Cursor an snakeX[DI] und snakeY[DI]
@@ -289,16 +287,12 @@ printLoop:  MOV AH, 02h
             INT 10h
 
             CMP DI, snakeSize   ;Bis DI = snakeSize
-            JE endPrint
-            INC DI              ;DI hochzaehlen
-            JMP printLoop
-endPrint:   XOR DI, DI
+            JNE printLoop
             RET
 printSnake  ENDP
 
 deleteTail  PROC                ;Prozedur um den Schwanz der Schlange zu loeschen, damit keine endlose Spur hinter sich hergezogen wird
             XOR DI, DI
-
             MOV AH, 02h
             MOV BH, 0
             MOV DL, snakeX[DI]  ;Ersten Eintrag des snakeX-Arrays in DL speichern
@@ -306,7 +300,7 @@ deleteTail  PROC                ;Prozedur um den Schwanz der Schlange zu loesche
             INT 10h             ;Cursor setzen
 
             MOV AH, 09h
-            MOV AL, 0DBh
+            MOV AL, '0'         ;Das Zeichen hier ist eig. egal es darf nur nicht '+', Block oder Square sein
             MOV BH, 0
             MOV BL, 00000000b   ;Farbe: Schwarz
             MOV CX, 1
@@ -317,7 +311,6 @@ deleteTail  ENDP
 resetSnake  PROC                ;Prozedur um den body der Schlange anzupassen (so sieht es aus als wuerde sie sich bewegen)
             XOR CX, CX
             XOR DI, DI
-
 ;Die Werte des Arrays werden "durchgereicht", also der Wert an Indexstelle 0 bekommt den Wert an Indexstelle 1 .
 ;Dieser bekommt wiederrum den an Indexstelle 2 usw.
 resetLoop:  MOV CL, snakeX[DI+1]
@@ -331,7 +324,7 @@ resetLoop:  MOV CL, snakeX[DI+1]
             RET
 resetSnake  ENDP
 
-collision   PROC                ;Ueberpruefen ob sich die Schlange selber frisst
+collision   PROC                ;Ueberpruefen ob sich die Schlange selber frisst oder der Rand getroffen wurde
             XOR DI, DI
             XOR DX, DX
             MOV DI, snakeSize
@@ -347,6 +340,8 @@ collision   PROC                ;Ueberpruefen ob sich die Schlange selber frisst
             INT 10h             ;Lese Zeichen und Attribut an der Cursorposition.
 
             CMP AL, '+'         ;Ueberpruefen ob das Zeichen an der Cursor Position ein Teil der Schlange ist
+            JE ende
+            CMP AL, 0DBh        ;Ueberpruefen ob das Zeichen an der Cursor Position ein Teil der Rahmens ist
             JE ende
             RET
 collision   ENDP
@@ -386,8 +381,6 @@ hardMode:   CMP score, 35       ;Ab 35 Punkten erhoeht sich die Geschwindigkeit
             JMP ende
 
 hardDEC:    DEC speed
-            JMP endScore
-
 endScore:   RET
 checkScore  ENDP
 
@@ -518,9 +511,7 @@ ystimmt:    ADD DL, BL
             CALL randomDH
             CALL printFood
             JMP calls           ;Damit die Schlange nicht 2 Pixel springt muss ich early raus (siehe Erklaerung)
-
-endCheck:   XOR DI, DI
-            RET
+endCheck:   RET
 checkFood   ENDP
 
 oldISRback  PROC                ;Prozedur zum Wiederherstellen der alten ISR1Ch
