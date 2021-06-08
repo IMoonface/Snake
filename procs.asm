@@ -470,10 +470,10 @@ foodStart:  MOV AH, 02h
             INT 10h             ;Zuerst Zeichen an der Stelle lesen denn
 
             CMP AL, '+'         ;man muss sicherstellen, das das Futter nicht an der Stelle eines Schlangenkoerperteils spawnen kann
-            JE unterSnake       ;falls es doch so ist
+            JE underSnake       ;falls es doch so ist
             JMP endFood
 
-unterSnake: CALL randomDL       ;Neuer Randomwert fuer DL
+underSnake: CALL randomDL       ;Neuer Randomwert fuer DL
             CALL randomDH       ;Neuer Randomwert fuer DH
             JMP foodStart       ;Von vorne anfangen
 
@@ -533,7 +533,7 @@ endscreen   PROC                ;Prozedur zum Abarbeiten der Sachen, die ich am 
             INT 10h             ;Bildschirm loeschen
 
             CMP DX, OFFSET win  ;Falls der OFFSET des Zeigers der den "win"-String angibt in DX drinsteht (also man den passenden score erreicht hat)
-            JE Ausgabe          ;Ausgabe
+            JE ausgabe          ;Ausgabe
 
             MOV DX, OFFSET lose ;Ansonsten wird der OFFSET des Zeigers der den "lose"-String angibt ausgewaehlt und ausgegeben
 ausgabe:    MOV AH, 09h
