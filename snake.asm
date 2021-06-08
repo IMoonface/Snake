@@ -39,7 +39,7 @@
 ;   - Videomodus 3
 ;==============================================================================
             .MODEL SMALL
-            .386
+            .386                ;Prozessortyp (Brauch ich nur fuer die IMUL DX, 160 und damit das "escape"-Label erreicht werden kann)
 video_seg   = 0B800h            ;Um in den Videospeicher zu schreiben
             .DATA
 ;***************************** DATASEGMENT ************************************
@@ -48,6 +48,7 @@ snakeX      DB  5,  6,  7,  8, 50 dup(0) ;"50 Duplikate von 0", die ersten 4 Ind
 snakeY      DB 10, 10, 10, 10, 50 dup(0)
 snakeSize   DW 3                         ;Gibt an wie lang die Schlange ist
 
+posMaus     DW ?
 ;Scorevariablen
 score       DB 0
 divrest     DB ?
@@ -65,10 +66,17 @@ oldISeg     DW ?
 counter     DW ?
 
 mode        DB 0                ;Fuer den Schwierigkeitsgrad (ist auf 0, weil wir in diffLoop ja andauern vergleichen)
+
+;Soundvariablen
+loserSound  DW 5000, 7250, 8500
+soundLength = $ - loserSound    ;$: Assembler Variante von .length() in java, ermittele die Laenge vom dem nach -
+
+winnerSound DW 5000, 3250, 2000
             INCLUDE strings.asm
 ;*************************** CODESEGMENT ******************************
             .CODE
             INCLUDE procs.asm
+            INCLUDE sound.asm
 ;1Ch Interrupt wird alle 18tel Sekunden ausgeloest und dient als Zeitgeber
 ISR1Ch:     PUSH DS             ;Alle Register die in einer ISR benutzt werden muessen gesichert werden!!!
             PUSH AX
@@ -146,7 +154,7 @@ waitLoop:   CMP counter, 0
             JE moveRight
             CMP AL, 1Bh         ;ESC
             JE escape
-            JNE nobutton        ;Falls kein Button gedrueckt wurde...
+            JMP nobutton        ;Falls kein Button gedrueckt wurde...
 
 noButton:   CMP movflag, 1
             JE moveUP           ;...wird ueberprueft welche movflag derzeit aktiv ist und der letzte zutreffende Fall wird wiederholt

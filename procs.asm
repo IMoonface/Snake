@@ -20,7 +20,13 @@ mausProc    PROC FAR            ;Muss FAR sein, weil vom Interrupt vorgeschriebe
             MOV ES, AX          ;Um in den Videospeicher schreiben zu koennen, setzt man ES auf 0b800h
             ;DX = Vertikale Cursorposition
             SHR DX, 3           ;Y-Koord/8, weil wir nicht mit den Pixeln arbeiten wollen, sondern mit den Bloecken im Videomodus
-            IMUL DX, 160        ;Vorzeichenbehaftete Multiplikation, um die Zeilenbyteadresse auszurechnen y-koord*160 (Siehe Erklaerung)
+            ;XOR AX, AX
+            ;MOV posMaus, DX
+            ;MOV AX, posMaus
+            ;MOV BX, 160
+            ;MUL BX
+            ;MOV DX, AX          ;Der umstaendliche Weg ohne den .386
+            IMUL DX, 160         ;Vorzeichenbehaftete Multiplikation, um die Zeilenbyteadresse auszurechnen y-koord*160 (Siehe Erklaerung)
 
             ;CX = Horizontale Cursorposition
             SHR CX, 3           ;X-Koord/8
@@ -351,7 +357,7 @@ checkScore  PROC                ;Prozedur um zu gucken ob der Punktestand zum Ge
             JE easyMode
             CMP mode, 2         ;Normal
             JE normalMode
-            JNE hardMode        ;Hard, weil mehr Modi gibt es ja nicht
+            JMP hardMode        ;Hard, weil mehr Modi gibt es ja nicht
 
 easyMode:   CMP score, 15       ;Ab 15 Punkten erhoeht sich die Geschwindigkeit
             JE easyDEC
@@ -398,19 +404,10 @@ randomDL    PROC                ;Prozedur um eine Randomzahl fuer DL zu erzeugen
                                 ;Liegt der <Quelloperand> im 16-Bit-Format vor, dann steht das Ergebnis der Division im Registerpaar AX:DX
                                 ;In DL steht der Rest
             CMP DL, 0           ;Kleiner Fix um sicherzugehen, dass keine kleinere Zahl als 1 rauskommt
-            JLE istNullDL
-            CMP DL, 9           ;Kleiner Fix um sicherzugehen, dass keine groeßere Zahl als 9 rauskommt
-            JG tooBigDL         ;Falls es goeßer als 9 sein sollte
+            JE istNullDL
             JMP endRandDL
 
 istNullDL:  INC DL              ;Inkrementiere DL solange
-            CMP DL, 1           ;bis DL = 1 ist
-            JNE istNullDL
-            JMP endRandDL
-
-tooBigDL:   DEC DL              ;Dekrementiere DL solange
-            CMP DL, 9           ;bis DL = 9 ist
-            JNE tooBigDL
 
 endRandDL:  XOR AX, AX
             XOR BX, BX
@@ -431,23 +428,14 @@ randomDH    PROC                ;Prozedur um eine Randomzahl fuer DH zu erzeugen
             MOV CX, 10
             DIV CX
             CMP DL, 0
-            JLE istNullDH       ;Selbe wie oben
+            JE istNullDH        ;Selbe wie oben
             CMP DL, 1
             JE istEins
-            CMP DL, 9
-            JG tooBigDH
             JMP endRandDH
 
 istNullDH:  INC DL              ;Damit wir min. eine 1 bekommen
-            CMP DL, 1
-            JNE istNullDH
 
 istEins:    INC DL              ;Damit wir min. eine 2 bekommen
-            JMP endRandDH
-
-tooBigDH:   DEC DL              ;Damit wir max. eine 9 bekommen
-            CMP DL, 9
-            JNE tooBigDH
 
 endRandDH:  XOR AX, AX
             XOR BX, BX
@@ -459,7 +447,9 @@ endRandDH:  XOR AX, AX
 randomDH    ENDP
 
 printFood   PROC                ;Prozedur um an Randompositionen Futter zu erzeugen
-foodStart:  MOV AH, 02h
+foodStart:  CALL randomDL
+            CALL randomDH
+            MOV AH, 02h
             MOV BH, 0
             MOV DL, randomX
             MOV DH, randomY
@@ -470,12 +460,8 @@ foodStart:  MOV AH, 02h
             INT 10h             ;Zuerst Zeichen an der Stelle lesen denn
 
             CMP AL, '+'         ;man muss sicherstellen, das das Futter nicht an der Stelle eines Schlangenkoerperteils spawnen kann
-            JE underSnake       ;falls es doch so ist
+            JE foodStart        ;falls es doch so ist
             JMP endFood
-
-underSnake: CALL randomDL       ;Neuer Randomwert fuer DL
-            CALL randomDH       ;Neuer Randomwert fuer DH
-            JMP foodStart       ;Von vorne anfangen
 
 endFood:    MOV AH, 09h
             MOV BH, 0
@@ -483,6 +469,16 @@ endFood:    MOV AH, 09h
             MOV CX, 1
             MOV BL, 00001100b   ;Farbe Rosa (Fleischfarbe)
             INT 10h             ;Zeichen schreiben
+
+            XOR AX, AX
+
+            MOV AH, 08h
+            MOV BH, 0
+            INT 10h             ;Zeichen an der Stelle lesen
+
+            CMP AL, 0FEh        ;um sicherzustellen, dass es auch gezeichnet wurde (manchmal ist das Futter nicht gespawned)
+            JNE foodstart
+
             RET
 printFood   ENDP
 
@@ -507,8 +503,7 @@ ystimmt:    ADD DL, BL
             INC snakeSize
             INC score
             CALL checkScore
-            CALL randomDL
-            CALL randomDH
+            CALL sound          ;Aufruf der Prozedur um einen Sound entsprechend der Situation zu spielen
             CALL printFood
             JMP calls           ;Damit die Schlange nicht 2 Pixel springt muss ich early raus (siehe Erklaerung)
 endCheck:   RET
@@ -538,5 +533,6 @@ endscreen   PROC                ;Prozedur zum Abarbeiten der Sachen, die ich am 
             MOV DX, OFFSET lose ;Ansonsten wird der OFFSET des Zeigers der den "lose"-String angibt ausgewaehlt und ausgegeben
 ausgabe:    MOV AH, 09h
             INT 21h             ;Zeichenkette darstellen
+            CALL sound          ;Aufruf der Prozedur um einen Sound entsprechend der Situation zu spielen
             RET
 endscreen   ENDP
