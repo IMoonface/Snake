@@ -20,13 +20,7 @@ mausProc    PROC FAR            ;Muss FAR sein, weil vom Interrupt vorgeschriebe
             MOV ES, AX          ;Um in den Videospeicher schreiben zu koennen, setzt man ES auf 0b800h
             ;DX = Vertikale Cursorposition
             SHR DX, 3           ;Y-Koord/8, weil wir nicht mit den Pixeln arbeiten wollen, sondern mit den Bloecken im Videomodus
-            ;XOR AX, AX
-            ;MOV posMaus, DX
-            ;MOV AX, posMaus
-            ;MOV BX, 160
-            ;MUL BX
-            ;MOV DX, AX          ;Der umstaendliche Weg ohne den .386
-            IMUL DX, 160         ;Vorzeichenbehaftete Multiplikation, um die Zeilenbyteadresse auszurechnen y-koord*160 (Siehe Erklaerung)
+            IMUL DX, 160        ;Vorzeichenbehaftete Multiplikation, um die Zeilenbyteadresse auszurechnen y-koord*160 (Siehe Erklaerung)
 
             ;CX = Horizontale Cursorposition
             SHR CX, 3           ;X-Koord/8
@@ -476,6 +470,14 @@ endFood:    MOV AH, 09h
             MOV BH, 0
             INT 10h             ;Zeichen an der Stelle lesen
 
+            CMP DL, 0
+            JLE foodstart
+            CMP DL, 80
+            JGE foodstart
+            CMP DH, 0
+            JLE foodstart
+            CMP DH, 24
+            JGE foodstart
             CMP AL, 0FEh        ;um sicherzustellen, dass es auch gezeichnet wurde (manchmal ist das Futter nicht gespawned)
             JNE foodstart
 

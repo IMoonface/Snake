@@ -57,6 +57,7 @@ soundLoop   PROC
             ADD DI, 2                       ;Um einen Eintrag weiterzugehen
 
             CALL wait4Note
+            
             ;Lautsprecher ausschalten   	(von Ihnen)
             IN AL, 61h                      ;Selbe wie oben
             AND AL, 11111100b               ;Soll der Summer ausgeschaltet werden müssen die Bits 0 und 1 auf Null gesetzt werden.
