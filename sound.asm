@@ -45,19 +45,21 @@ wait4Note   ENDP
 
 soundLoop   PROC
             OUT 42h, AL                     ;Der Lautsprecher versteht nur 8 Bit deswegen erstmal das Lowbyte
-            MOV AL, AH                      ;und dann das Highbyte nach AL, weil man sich geeinigt hat das man für OUT immer das AL nimmt
-            OUT 42h, AL                     ;Jeweils nach Port 42h = Lautsprecher
-
+            MOV AL, AH                      ;Dann das Highbyte
+            OUT 42h, AL                     ;Jeweils nach Port 42h
+                                            ;(Port 42h) ist mit dem Lautsprecher des Computers verbunden und gibt Rechteckimpulse aus,
+                                            ;die zur Erzeugung von Tönen verwendet werden
+                                            
             ;Lautsprechen einschalten       (von Ihnen)
-            IN AL, 61h                      ;In: lese ein Byte aus dem Port. Port 61h guckt ob etwas vom Lautsprecher kommt.
+            IN AL, 61h                      ;Lese ein Byte aus dem Port. Port 61h kontrolliert den Lautsprecher
                                             ;Zur Erzeugung eines Tones müssen die Bits 0 und 1 auf Eins gesetzt werden
             OR AL, 00000011b                ;= 00000011b
-            OUT 61h, AL                     ;Schickt die Bits an den Port (Lautsprecher)
+            OUT 61h, AL                     ;Schickt die Bits an den Port
 
             ADD DI, 2                       ;Um einen Eintrag weiterzugehen
 
             CALL wait4Note
-            
+
             ;Lautsprecher ausschalten   	(von Ihnen)
             IN AL, 61h                      ;Selbe wie oben
             AND AL, 11111100b               ;Soll der Summer ausgeschaltet werden müssen die Bits 0 und 1 auf Null gesetzt werden.
