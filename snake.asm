@@ -111,7 +111,7 @@ begin:      MOV AX, @DATA       ;Adresse des Datensegments in das Register „AX
             MOV AL, 3           ;Videomodus3 -> 640x200 Pixel mit 16 Farben (in 80x25 Bloecken)
             INT 10h             ;Zeichenbildschirm einstellen
 
-            CALL printLogo
+            CALL printLogo      ;Aufruf der Prozedur um "Logo" zu printen
             CALL difficulty
 
             MOV AH, 01h
@@ -132,7 +132,7 @@ waitForKey: MOV AH, 0Ch
 
             XOR BX, BX
             MOV BX, speed
-            MOV counter, bx
+            MOV counter, BX
 
 waitLoop:   CMP counter, 0
             JNE waitLoop        ;Warten bis der Interrupt den counter runtergezaehlt hat

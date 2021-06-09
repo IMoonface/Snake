@@ -2,7 +2,7 @@ printLogo   PROC                ;Prozedur zum Printen des Logos
             MOV AH, 02h         ;BH = Seitennummer, DL = Spalte, DH = Zeile
             MOV BH, 0
             MOV DL, 0
-            MOV DH, 0           ;Position 0,1 (DL = x, DH = y)
+            MOV DH, 0           ;Position 0,0 (DL = x, DH = y)
             INT 10h             ;Cursor setzen
 
             MOV AH, 01h
@@ -17,7 +17,7 @@ printLogo   ENDP
 
 mausProc    PROC FAR            ;Muss FAR sein, weil vom Interrupt vorgeschrieben!
             MOV AX, video_seg
-            MOV ES, AX          ;Um in den Videospeicher schreiben zu koennen, setzt man ES auf 0b800h
+            MOV ES, AX          ;Um in den Videospeicher schreiben zu koennen, setzt man ES auf 0B800h
             ;DX = Vertikale Cursorposition
             SHR DX, 3           ;Y-Koord/8, weil wir nicht mit den Pixeln arbeiten wollen, sondern mit den Bloecken im Videomodus
             IMUL DX, 160        ;Vorzeichenbehaftete Multiplikation, um die Zeilenbyteadresse auszurechnen y-koord*160 (Siehe Erklaerung)
@@ -455,9 +455,8 @@ foodStart:  CALL randomDL
 
             CMP AL, '+'         ;man muss sicherstellen, das das Futter nicht an der Stelle eines Schlangenkoerperteils spawnen kann
             JE foodStart        ;falls es doch so ist
-            JMP endFood
 
-endFood:    MOV AH, 09h
+            MOV AH, 09h
             MOV BH, 0
             MOV AL, 0FEh        ;Zeichen: "black square"
             MOV CX, 1
@@ -476,7 +475,7 @@ endFood:    MOV AH, 09h
             JGE foodstart
             CMP DH, 0
             JLE foodstart
-            CMP DH, 24
+            CMP DH, 25
             JGE foodstart
             CMP AL, 0FEh        ;um sicherzustellen, dass es auch gezeichnet wurde (manchmal ist das Futter nicht gespawned)
             JNE foodstart
