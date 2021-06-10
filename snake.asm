@@ -8,7 +8,7 @@
 ;Man muss versuchen durch das Einsammeln des Futters die Schlange zu saettigen.
 ;==============================================================================
 ;Prinzip:
-;Zuerst waehlt man einen Schwierigkeitsgrad
+;Zuerst waehlt man mit der Maus einen Schwierigkeitsgrad
 ;    easy (mode = 1):
 ;            - speed = 4
 ;            - man muss 30 Punkte erreichen
@@ -36,7 +36,8 @@
 ;Besonderheiten:
 ;   - eigene Interrupt Service Routine fuer ISR1Ch
 ;   - eigene Maus Unterroutine (AH = 0Ch)
-;   - Videomodus 3
+;   - Videomodus 3 (VGA-Grafik)
+;   - Soundeffekte
 ;==============================================================================
             .MODEL SMALL
             .386                ;Prozessortyp (Brauch ich nur fuer die IMUL DX, 160 und damit das "escape"-Label erreicht werden kann)
