@@ -403,12 +403,8 @@ randomDL    PROC                ;Prozedur um eine Randomzahl fuer DL zu erzeugen
 
 istNullDL:  INC DL              ;Inkrementiere DL solange
 
-endRandDL:  XOR AX, AX
-            XOR BX, BX
-            MOV AL, DL
-            MOV BL, 8
-            MUL BL              ;Multiplikation mit 8, max Wert: 8*9 = 72
-            MOV randomX, AL     ;In randomX steht jetzt die Pseudorandomzahl fuer die x-Achse
+endRandDL:  SHL DL, 3           ;Sowas wie Multiplikation mit 8, max Wert: 8*9 = 72, min Wert: 8*1 = 8
+            MOV randomX, DL     ;In randomX steht jetzt die Pseudorandomzahl fuer die x-Achse
             RET
 randomDL    ENDP
 
@@ -431,12 +427,8 @@ istNullDH:  INC DL              ;Damit wir min. eine 1 bekommen
 
 istEins:    INC DL              ;Damit wir min. eine 2 bekommen
 
-endRandDH:  XOR AX, AX
-            XOR BX, BX
-            MOV AL, DL
-            MOV BL, 2
-            MUL BL              ;Multiplikation mit 2, max Wert: 2*9 = 18
-            MOV randomY, AL
+endRandDH:  SHL DL, 1           ;Sowas wie Multiplikation mit 2, max Wert: 2*9 = 18, min Wert: 2*2 = 4
+            MOV randomY, DL
             RET
 randomDH    ENDP
 
@@ -463,23 +455,14 @@ foodStart:  CALL randomDL
             MOV BL, 00001100b   ;Farbe Rosa (Fleischfarbe)
             INT 10h             ;Zeichen schreiben
 
-            XOR AX, AX
-
-            MOV AH, 08h
-            MOV BH, 0
-            INT 10h             ;Zeichen an der Stelle lesen
-
-            CMP DL, 0
-            JLE foodstart
-            CMP DL, 80
-            JGE foodstart
-            CMP DH, 0
-            JLE foodstart
-            CMP DH, 25
-            JGE foodstart
-            CMP AL, 0FEh        ;um sicherzustellen, dass es auch gezeichnet wurde (manchmal ist das Futter nicht gespawned)
-            JNE foodstart
-
+            CMP DL, 1
+            JL foodstart
+            CMP DL, 79
+            JG foodstart
+            CMP DH, 1
+            JL foodstart
+            CMP DH, 24
+            JG foodstart
             RET
 printFood   ENDP
 
@@ -524,15 +507,16 @@ oldISRback  PROC                ;Prozedur zum Wiederherstellen der alten ISR1Ch
 oldISRback  ENDP
 
 endscreen   PROC                ;Prozedur zum Abarbeiten der Sachen, die ich am Schluss brauche
-            MOV AH, 00h
-            MOV AL, 3
-            INT 10h             ;Bildschirm loeschen
-
             CMP DX, OFFSET win  ;Falls der OFFSET des Zeigers der den "win"-String angibt in DX drinsteht (also man den passenden score erreicht hat)
             JE ausgabe          ;Ausgabe
 
             MOV DX, OFFSET lose ;Ansonsten wird der OFFSET des Zeigers der den "lose"-String angibt ausgewaehlt und ausgegeben
-ausgabe:    MOV AH, 09h
+
+ausgabe:    MOV AH, 00h
+            MOV AL, 3
+            INT 10h             ;Bildschirm loeschen
+            
+            MOV AH, 09h
             INT 21h             ;Zeichenkette darstellen
             CALL sound          ;Aufruf der Prozedur um einen Sound entsprechend der Situation zu spielen
             RET

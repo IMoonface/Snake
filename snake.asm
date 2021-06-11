@@ -2,7 +2,7 @@
 ;Abschlussprogramm fuer das Modul "Assemblerprogrammierung" bei Prof. Kraemer
 ;Jahrgang: 18-INB2
 ;Titel: Snake
-;Programmed by: Marc Uxa
+;Programmed by Marc Uxa & Benjamin Huber
 ;==============================================================================
 ;Ziel:
 ;Man muss versuchen durch das Einsammeln des Futters die Schlange zu saettigen.
@@ -73,6 +73,8 @@ loserSound  DW 5000, 7250, 8500
 soundLength = $ - loserSound    ;$: Assembler Variante von .length() in java, ermittele die Laenge vom dem nach -
 
 winnerSound DW 5000, 3250, 2000
+
+;Strings
             INCLUDE strings.asm
 ;*************************** CODESEGMENT ******************************
             .CODE
