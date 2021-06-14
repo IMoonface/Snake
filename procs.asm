@@ -454,15 +454,6 @@ foodStart:  CALL randomDL
             MOV CX, 1
             MOV BL, 00001100b   ;Farbe Rosa (Fleischfarbe)
             INT 10h             ;Zeichen schreiben
-
-            CMP DL, 1
-            JL foodstart
-            CMP DL, 79
-            JG foodstart
-            CMP DH, 1
-            JL foodstart
-            CMP DH, 24
-            JG foodstart
             RET
 printFood   ENDP
 
@@ -515,7 +506,7 @@ endscreen   PROC                ;Prozedur zum Abarbeiten der Sachen, die ich am 
 ausgabe:    MOV AH, 00h
             MOV AL, 3
             INT 10h             ;Bildschirm loeschen
-            
+
             MOV AH, 09h
             INT 21h             ;Zeichenkette darstellen
             CALL sound          ;Aufruf der Prozedur um einen Sound entsprechend der Situation zu spielen
