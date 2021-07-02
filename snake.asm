@@ -1,8 +1,9 @@
 ;==============================================================================
-;Abschlussprogramm fuer das Modul "Assemblerprogrammierung" bei Prof. Kraemer
-;Jahrgang: 18-INB2
+;Abschlussprojekt fuer das Modul "Assemblerprogrammierung" bei Prof. Kraemer
 ;Titel: Snake
-;Programmed by Marc Uxa & Benjamin Huber
+;Programmiert von: Marc Uxa (71922) & Benjamin Huber (73964)
+;Zum Kompilieren: tasm snake.asm & tlink snake.obj
+;Zum Ausfuehren: snake
 ;==============================================================================
 ;Ziel:
 ;Man muss versuchen durch das Einsammeln des Futters die Schlange zu saettigen.
@@ -27,11 +28,7 @@
 ;Die Schlange darf weder sich noch den Rand fressen. Viel Spass!
 ;==============================================================================
 ;Unterprogramme:
-;   - Ausgelaggert in procs.asm
-;   - moveUp
-;   - moveDown
-;   - moveLeft
-;   - moveRight
+;   - Ausgelaggert in procs.asm und sound.asm
 ;
 ;Besonderheiten:
 ;   - eigene Interrupt Service Routine fuer ISR1Ch
@@ -160,7 +157,7 @@ waitLoop:   CMP counter, 0
             JMP nobutton        ;Falls kein Button gedrueckt wurde...
 
 noButton:   CMP movflag, 1
-            JE moveUP           ;...wird ueberprueft welche movflag derzeit aktiv ist und der letzte zutreffende Fall wird wiederholt
+            JE moveUp           ;...wird ueberprueft welche movflag derzeit aktiv ist und der letzte zutreffende Fall wird wiederholt
             CMP movflag, 2
             JE moveDown
             CMP movflag, 3
