@@ -74,4 +74,6 @@ lose        DB "                                                                
             DB " #                                                                            # "
             DB " ##############################################################################$"
 
-scoreString DB "Score: $"
+easyScore DB "Score:   /30$"
+mediumScore DB "Score:   /40$"
+hardScore DB "Score:   /50$"

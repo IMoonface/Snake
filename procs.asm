@@ -1,3 +1,5 @@
+INCLUDE     tests.asm
+
 printLogo   PROC                ;Prozedur zum Printen des Logos
             MOV AH, 02h         ;BH = Seitennummer, DL = Spalte, DH = Zeile
             MOV BH, 0
@@ -213,12 +215,24 @@ printFrame  ENDP
 printScore  PROC                ;Prozedur um "Score" zu printen
             MOV AH, 02h
             MOV BH, 0
-            MOV DL, 35
+            MOV DL, 33
             MOV DH, 23
             INT 10h             ;Cursor setzen
 
-            MOV DX, OFFSET scoreString
-            MOV AH, 09h
+            CMP mode, 1
+            JE easyPrint
+            CMP mode, 2
+            JE medPrint
+            CMP mode, 3
+            JE hardPrint
+
+easyPrint:  MOV DX, OFFSET easyScore
+            JMP goalPrint
+medPrint:   MOV DX, OFFSET mediumScore
+            JMP goalPrint
+hardPrint:  MOV DX, OFFSET hardScore
+
+goalPrint:  MOV AH, 09h
             INT 21h             ;Zeichenkette darstellen
             RET
 printScore  ENDP
@@ -433,8 +447,9 @@ endRandDH:  SHL DL, 1           ;Sowas wie Multiplikation mit 2, max Wert: 2*9 =
 randomDH    ENDP
 
 printFood   PROC                ;Prozedur um an Randompositionen Futter zu erzeugen
-foodStart:  CALL randomDL
-            CALL randomDH
+foodStart:  CALL randomDH
+            CALL randomTest
+
             MOV AH, 02h
             MOV BH, 0
             MOV DL, randomX
@@ -477,6 +492,7 @@ ystimmt:    ADD DL, BL
             MOV snakeY[DI+1], DH
             INC snakeSize
             INC score
+            CALL randomDL
             CALL checkScore
             CALL sound          ;Aufruf der Prozedur um einen Sound entsprechend der Situation zu spielen
             CALL printFood

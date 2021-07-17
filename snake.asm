@@ -118,8 +118,8 @@ begin:      MOV AX, @DATA       ;Adresse des Datensegments in das Register „AX
             MOV CX, 2607h       ;CX=2607h heißt unsichtbarer Cursor
             INT 10h             ;Cursorform einstellen
 
-            CALL printFrame     ;Aufruf der Prozedur zum Zeichnen des Rahmens
             CALL printScore     ;Aufruf der Prozedur um "Score" zu printen
+            CALL printFrame     ;Aufruf der Prozedur zum Zeichnen des Rahmens
             CALL printSnake     ;Aufruf der Prozedur zum Zeichnen der Schlange
             CALL deleteTail     ;Aufruf der Prozedur um den Schwanz der Schlange zu loeschen
             CALL randomDL       ;Aufruf der Prozedur um eine Randomzahl fuer DL zu erzeugen
