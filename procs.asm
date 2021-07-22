@@ -240,7 +240,7 @@ printScore  ENDP
 printPoints PROC                ;Prozedur um die Punktzahl mit Potenzzerlegung zu zerlegen, falls sie zu gross wird um sie auszugeben
             XOR AX, AX
             MOV AL, score
-            MOV DL, 42
+            MOV DL, 40
 
             CMP AL, 9
             JG zehner           ;Wenn ueber 10 JMP zu Zehner-Potenzzerlegung

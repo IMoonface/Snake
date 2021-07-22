@@ -5,37 +5,6 @@
 ;Zum Kompilieren: tasm snake.asm & tlink snake.obj
 ;Zum Ausfuehren: snake
 ;==============================================================================
-;Ziel:
-;Man muss versuchen durch das Einsammeln des Futters die Schlange zu saettigen.
-;==============================================================================
-;Prinzip:
-;Zuerst waehlt man mit der Maus einen Schwierigkeitsgrad
-;    easy (mode = 1):
-;            - speed = 4
-;            - man muss 30 Punkte erreichen
-;            - ab 15 Punkten erhoeht sich die Geschwindigkeit
-;    normal (mode = 2):
-;            - speed = 3
-;            - man muss 40 Punkte erreichen
-;            - ab 20 Punkten erhoeht sich die Geschwindigkeit
-;    hard (mode = 3):
-;            - speed = 2
-;            - man muss 50 Punkte erreichen
-;            - ab 35 Punkten erhoeht sich die Geschwindigkeit
-;
-;Mit WASD kann man dann die Schlange steuern.
-;Wenn man das Futter einsammelt verlaengert sich die Schlange.
-;Die Schlange darf weder sich noch den Rand fressen. Viel Spass!
-;==============================================================================
-;Unterprogramme:
-;   - Ausgelaggert in procs.asm und sound.asm
-;
-;Besonderheiten:
-;   - eigene Interrupt Service Routine fuer ISR1Ch
-;   - eigene Maus Unterroutine (AH = 0Ch)
-;   - Videomodus 3 (VGA-Grafik)
-;   - Soundeffekte
-;==============================================================================
             .MODEL SMALL
             .386                ;Prozessortyp (Brauch ich nur fuer die IMUL DX, 160 und damit das "escape"-Label erreicht werden kann)
 video_seg   = 0B800h            ;Um in den Videospeicher zu schreiben
