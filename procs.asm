@@ -1,5 +1,3 @@
-INCLUDE     tests.asm
-
 printLogo   PROC                ;Prozedur zum Printen des Logos
             MOV AH, 02h         ;BH = Seitennummer, DL = Spalte, DH = Zeile
             MOV BH, 0
@@ -338,6 +336,7 @@ resetLoop:  MOV CL, snakeX[DI+1]
             RET
 resetSnake  ENDP
 
+;ist schon ein test an sich
 collision   PROC                ;Ueberpruefen ob sich die Schlange selber frisst oder der Rand getroffen wurde
             XOR DI, DI
             XOR DX, DX
@@ -360,6 +359,7 @@ collision   PROC                ;Ueberpruefen ob sich die Schlange selber frisst
             RET
 collision   ENDP
 
+;zum testen
 checkScore  PROC                ;Prozedur um zu gucken ob der Punktestand zum Gewinnen erreicht wurde
             CMP mode, 1         ;Easy
             JE easyMode

@@ -6,59 +6,45 @@
 ;Zum Ausfuehren: snake
 ;==============================================================================
             .MODEL SMALL
-            .386                ;Prozessortyp (Brauch ich nur fuer die IMUL DX, 160 und damit das "escape"-Label erreicht werden kann)
-video_seg   = 0B800h            ;Um in den Videospeicher zu schreiben
+            .386
+video_seg   = 0B800h
             .DATA
 ;***************************** DATASEGMENT ************************************
-;Schlangen-Array
-snakeX      DB  5,  6,  7,  8, 50 dup(0) ;"50 Duplikate von 0", die ersten 4 Indexe haben Werte fuer die Positionen, wo die Schlange starten soll, der Rest ist 0
+snakeX      DB  5,  6,  7,  8, 50 dup(0) ;"50 Duplikate von 0"
 snakeY      DB 10, 10, 10, 10, 50 dup(0)
 snakeSize   DW 3                         ;Gibt an wie lang die Schlange ist
-
 posMaus     DW ?
-;Scorevariablen
 score       DB 0
 divrest     DB ?
-
-;Bewegungsvariable
-movflag     DB 4                ;Standartmaessig bewegt sich die Schlange nach rechts
-speed       DW ?                ;Muss WORD sein, weil wir es in BX schreiben wollen
-
-;Futtervariablen
-randomX     DB ?                ;? heißt nicht initialisiert
+movflag     DB 4                         ;Standartmaessig bewegt sich die Schlange nach rechts
+speed       DW ?
+randomX     DB ?
 randomY     DB ?
-
 oldIOFF     DW ?
 oldISeg     DW ?
 counter     DW ?
-
-mode        DB 0                ;Fuer den Schwierigkeitsgrad (ist auf 0, weil wir in diffLoop ja andauern vergleichen)
-
-;Soundvariablen
+mode        DB 0
 loserSound  DW 5000, 7250, 8500
-soundLength = $ - loserSound    ;$: Assembler Variante von .length() in java, ermittele die Laenge vom dem nach -
-
+soundLength = $ - loserSound
 winnerSound DW 5000, 3250, 2000
-
-;Strings
             INCLUDE strings.asm
 ;*************************** CODESEGMENT ******************************
             .CODE
             INCLUDE procs.asm
             INCLUDE sound.asm
+            INCLUDE tests.asm
 ;1Ch Interrupt wird alle 18tel Sekunden ausgeloest und dient als Zeitgeber
-ISR1Ch:     PUSH DS             ;Alle Register die in einer ISR benutzt werden muessen gesichert werden!!!
+ISR1Ch:     PUSH DS
             PUSH AX
             MOV AX, @DATA       ;Muessen wir nochmal vorsichtshalber laden, weil wir nie wissen von wo diese Routine aufgerufen wird
             MOV DS, AX
-            DEC counter         ;Runterzaehlen des counters
+            DEC counter
             POP AX
             POP DS
             IRET
 
-begin:      MOV AX, @DATA       ;Adresse des Datensegments in das Register „AX“ laden
-            MOV DS, AX          ;In DS uebertragen
-                                ;(das DS-Register kann nicht direkt mit einer Konstante beschrieben werden)
+begin:      MOV AX, @DATA
+            MOV DS, AX
             MOV AL, 1Ch
             MOV AH, 35h
             INT 21h             ;Interrupt 21h mit AH auf 35h: Interrupt-Vektor ermitteln ((AL)	Interrupt Nummer)
@@ -66,22 +52,22 @@ begin:      MOV AX, @DATA       ;Adresse des Datensegments in das Register „AX
             MOV oldIOFF, BX
             MOV oldISeg, ES
                                 ;Wir muessen der DOS Routine die neue Adresse der ISR in DS:DX uebergeben
-            PUSH DS             ;Wir sichern dazu erstmal DS
-            PUSH CS             ;Unsere ISR steht ihm CodeSegment. Die CodeSegment-Adresse steht in CS, diese sichern wir ebenfalls
+            PUSH DS
+            PUSH CS
             POP DS              ;DS <- CS
-            MOV DX, OFFSET ISR1Ch ;Adresse ist jetzt in DS:DX
+            MOV DX, OFFSET ISR1Ch
             MOV AL, 1Ch
             MOV AH, 25h
             INT 21h             ;Interrupt 21h mit AH auf 25h: Interrupt-Vektor setzen ((AL) Interrupt Nummer)
                                 ;Damit setzen wir jetzt unsere eigens definierte ISR1Ch
-            POP DS              ;Datensegment, dahin wo es hingehoert
+            POP DS
 
             MOV AH, 00h
             MOV AL, 3           ;Videomodus3 -> 640x200 Pixel mit 16 Farben (in 80x25 Bloecken)
             INT 10h             ;Zeichenbildschirm einstellen
 
             CALL printLogo      ;Aufruf der Prozedur um "Logo" zu printen
-            CALL difficulty
+            CALL difficulty     ;Aufruf der Prozedur um den Schwierigkeitsgrad zu ermitteln
 
             MOV AH, 01h
             MOV CX, 2607h       ;CX=2607h heißt unsichtbarer Cursor
@@ -97,18 +83,18 @@ begin:      MOV AX, @DATA       ;Adresse des Datensegments in das Register „AX
 
 waitForKey: MOV AH, 0Ch
             MOV AL, 0
-            INT 21h             ;Tastaturbuffer leeren, damit sich schnelle Eingaben nicht stappeln (aus dem Ulbricht Video)
+            INT 21h             ;Tastaturbuffer leeren, damit sich schnelle Eingaben nicht stappeln
 
             XOR BX, BX
             MOV BX, speed
             MOV counter, BX
 
 waitLoop:   CMP counter, 0
-            JNE waitLoop        ;Warten bis der Interrupt den counter runtergezaehlt hat
+            JNE waitLoop
 
             MOV AH, 01h         ;ZF = 1: kein wartendes Zeichen. ZF = 0: ein Zeichen steht zur Abholung bereit.
-            INT 16h             ;Keyboard Status ohne Abholung des Zeichens (von Ihnen)
-            JZ nobutton         ;JMP if ZF gesetzt (ZF = 1).
+            INT 16h             ;Keyboard Status ohne Abholung des Zeichens
+            JZ nobutton         ;JMP if ZF gesetzt (ZF = 1)
 
             MOV AH, 00h
             INT 16h             ;Liest das letzte Zeichen aus den Tastaturbuffer aus und speichert es in AL
@@ -123,10 +109,10 @@ waitLoop:   CMP counter, 0
             JE moveRight
             CMP AL, 1Bh         ;ESC
             JE escape
-            JMP nobutton        ;Falls kein Button gedrueckt wurde...
+            JMP nobutton        ;Falls kein Button gedrueckt wurde
 
-noButton:   CMP movflag, 1
-            JE moveUp           ;...wird ueberprueft welche movflag derzeit aktiv ist und der letzte zutreffende Fall wird wiederholt
+noButton:   CMP movflag, 1      ;Guckt welcher Move zuletzt gemacht wurde und wiederholt diesen
+            JE moveUp
             CMP movflag, 2
             JE moveDown
             CMP movflag, 3
@@ -135,12 +121,12 @@ noButton:   CMP movflag, 1
             JE moveRight
 
 moveUp:     CMP movflag, 2      ;Um zu verhindern, dass man direkt nach down nicht wieder up machen kann
-            JE noButton         ;JMP Equal zu noButton (ist dann so als haette man keinen Button gedrueckt)
+            JE noButton
             XOR BX, BX
             MOV BH, -1          ;Kleiner Fix, weil ansonsten das neue Element im Schlangen Array an die Stelle
                                 ;der derzeitigen Position geschrieben werden wuerde und man so nochmal warten muesste
                                 ;bis sich die Schlange "aktualisiert" (Siehe Erklaerung)
-            MOV movflag, 1      ;movflag gibt die zuletzt gegangene Richtung an hier "hoch"
+            MOV movflag, 1
             CALL checkFood      ;Aufruf der Prozedur um zu sehen ob der Kopf der Schlange mit der Position des Futters uebereinstimmt
             CALL resetSnake     ;Aufruf der Prozedur um den body der Schlange anzupassen
             DEC snakeY[DI]      ;(Siehe Erklaerung)
@@ -182,15 +168,15 @@ escape:     CALL oldISRback     ;Aufruf der Prozedur zum Widerherstellen der alt
             INT 10h             ;Bildschirm Loeschen
             MOV AH, 4Ch
             INT 21h             ;Zurueck zu DOS
-;CALLs die am Ende (egal ob gedrueckter Button oder nicht) gebraucht werden ausgelaggert in ein Label
+
 calls:      CALL collision      ;Prozedur um zu gucken ob sich die Schlange selber frisst oder der Rahmen berueht wurde
             CALL printSnake
             CALL deleteTail
-            JMP waitForKey      ;Zurueck zur Endlosschleife
+            JMP waitForKey      
 
-ende:       CALL endscreen      ;Aufruf der Prozedur zum Abarbeiten der Sachen die ich am Schluss brauche
-            CALL oldISRback     ;Aufruf der Prozedur zum Widerherstellen der alten ISR
+ende:       CALL endscreen      ;Aufruf der Prozedur zum Abarbeiten der Sachen am Schluss gebraucht werden
+            CALL oldISRback
             MOV AH, 4Ch
             INT 21h             ;Zurueck zu DOS
-            .STACK 100h         ;Wo wir auf den Stack starten wollen
+            .STACK 100h
             end begin
