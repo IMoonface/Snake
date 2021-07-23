@@ -6,12 +6,12 @@ printLogo   PROC                ;Prozedur zum Printen des Logos
             INT 10h             ;Cursor setzen
 
             MOV AH, 01h
-            MOV CX, 2607h       ;CX=2607h heißt unsichtbarer Cursor
-            INT 10h             ;Cursorform einstellen
+            MOV CX, 2607h
+            INT 10h
 
             MOV AH, 09h
             MOV DX, OFFSET logo
-            INT 21h             ;Zeichenkette darstellen (in DX muss der OFFSET des Zeigers, der eine mit $ abgeschlossene Zeichenkette angibt drinstehen)
+            INT 21h             ;Zeichenkette darstellen
             RET
 printLogo   ENDP
 
@@ -149,7 +149,7 @@ printFrame  PROC                ;Prozedur zum Zeichnen des Rahmens
 ;Zeichnet den linken Rand
 leftSide:   MOV AH, 02h
             MOV BH, 0
-            MOV DL, 0           ;Position 0,1 (DL = x, DH = y)
+            MOV DL, 0
             INT 10h             ;Cursor setzen
 
             MOV AH, 09h
@@ -448,7 +448,7 @@ randomDH    ENDP
 
 printFood   PROC                ;Prozedur um an Randompositionen Futter zu erzeugen
 foodStart:  CALL randomDH
-            CALL randomTest
+            ;CALL randomTest
 
             MOV AH, 02h
             MOV BH, 0

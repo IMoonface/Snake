@@ -12,11 +12,11 @@ video_seg   = 0B800h
 ;***************************** DATASEGMENT ************************************
 snakeX      DB  5,  6,  7,  8, 50 dup(0) ;"50 Duplikate von 0"
 snakeY      DB 10, 10, 10, 10, 50 dup(0)
-snakeSize   DW 3                         ;Gibt an wie lang die Schlange ist
+snakeSize   DW 3                ;Gibt an wie lang die Schlange ist
 posMaus     DW ?
 score       DB 0
 divrest     DB ?
-movflag     DB 4                         ;Standartmaessig bewegt sich die Schlange nach rechts
+movflag     DB 4                ;Standartmaessig bewegt sich die Schlange nach rechts
 speed       DW ?
 randomX     DB ?
 randomY     DB ?
@@ -33,6 +33,7 @@ winnerSound DW 5000, 3250, 2000
             INCLUDE procs.asm
             INCLUDE sound.asm
             INCLUDE tests.asm
+
 ;1Ch Interrupt wird alle 18tel Sekunden ausgeloest und dient als Zeitgeber
 ISR1Ch:     PUSH DS
             PUSH AX
@@ -111,7 +112,8 @@ waitLoop:   CMP counter, 0
             JE escape
             JMP nobutton        ;Falls kein Button gedrueckt wurde
 
-noButton:   CMP movflag, 1      ;Guckt welcher Move zuletzt gemacht wurde und wiederholt diesen
+;Guckt welcher Move zuletzt gemacht wurde und wiederholt diesen
+noButton:   CMP movflag, 1
             JE moveUp
             CMP movflag, 2
             JE moveDown
@@ -172,7 +174,7 @@ escape:     CALL oldISRback     ;Aufruf der Prozedur zum Widerherstellen der alt
 calls:      CALL collision      ;Prozedur um zu gucken ob sich die Schlange selber frisst oder der Rahmen berueht wurde
             CALL printSnake
             CALL deleteTail
-            JMP waitForKey      
+            JMP waitForKey
 
 ende:       CALL endscreen      ;Aufruf der Prozedur zum Abarbeiten der Sachen am Schluss gebraucht werden
             CALL oldISRback
