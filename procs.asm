@@ -447,8 +447,9 @@ endRandDH:  SHL DL, 1           ;Sowas wie Multiplikation mit 2, max Wert: 2*9 =
 randomDH    ENDP
 
 printFood   PROC                ;Prozedur um an Randompositionen Futter zu erzeugen
-foodStart:  CALL randomDH
-            ;CALL randomTest
+foodStart:  CALL randomDL
+            CALL randomDH
+            CALL randomTest
 
             MOV AH, 02h
             MOV BH, 0
@@ -492,7 +493,6 @@ ystimmt:    ADD DL, BL
             MOV snakeY[DI+1], DH
             INC snakeSize
             INC score
-            CALL randomDL
             CALL checkScore
             CALL sound          ;Aufruf der Prozedur um einen Sound entsprechend der Situation zu spielen
             CALL printFood
