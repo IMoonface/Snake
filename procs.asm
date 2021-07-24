@@ -475,19 +475,24 @@ printFood   ENDP
 
 checkFood   PROC                ;Prozedur um zu sehen ob der Kopf der Schlange mit der Position des Futters uebereinstimmt
             XOR DI, DI
-            MOV DI, snakeSize
             XOR DX, DX
+            MOV DI, snakeSize
+
+            MOV AH, 02h
+            MOV BH, 0
             MOV DL, randomX
             MOV DH, randomY
-            CMP snakeX[DI], DL
-            JE xstimmt          ;Wenn x Position vom Kopf der Schlange mit der x Position des Futters uebereinstimmt
+            INT 10h             ;Cursor setzen
+
+            MOV AH, 08h
+            MOV BH, 0
+            INT 10h             ;Lese Zeichen und Attribut an der Cursorposition.
+
+            CMP AL, '+'         ;Ueberpruefen ob das Zeichen an der Cursor Position ein Teil der Schlange ist
+            JE foodHit
             JMP endCheck
 
-xstimmt:    CMP snakeY[DI], DH
-            JE ystimmt          ;Wenn x und y Positionen vom Kopf der Schlange mit den x und y Positionen des Futters uebereinstimmen
-            JMP endCheck
-
-ystimmt:    ADD DL, BL
+foodHit:    ADD DL, BL
             ADD DH, BH          ;Einzeln, weil es ansonsten Probleme gab (keine ahnung wieso)
             MOV snakeX[DI+1], DL
             MOV snakeY[DI+1], DH
@@ -515,11 +520,11 @@ oldISRback  ENDP
 
 endscreen   PROC                ;Prozedur zum Abarbeiten der Sachen, die ich am Schluss brauche
             CMP DX, OFFSET win  ;Falls der OFFSET des Zeigers der den "win"-String angibt in DX drinsteht (also man den passenden score erreicht hat)
-            JE ausgabe          ;Ausgabe
+            JE printEnd         ;Ausgabe
 
             MOV DX, OFFSET lose ;Ansonsten wird der OFFSET des Zeigers der den "lose"-String angibt ausgewaehlt und ausgegeben
 
-ausgabe:    MOV AH, 00h
+printEnd:   MOV AH, 00h
             MOV AL, 3
             INT 10h             ;Bildschirm loeschen
 
