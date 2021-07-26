@@ -37,8 +37,9 @@ mausProc    PROC FAR            ;Muss FAR sein, weil vom Interrupt vorgeschriebe
             RET                 ;Zum zurueckspringen
 mausProc    ENDP
 
+;test
 checkPosi   PROC                ;Prozedur um zu checken, ob man Easy, Normal oder Hard angeklickt hat
-;Gucken, ob auf einen Buchstaben in "Hard" geklickt wird (56-52 checken)
+            ;Gucken, ob auf einen Buchstaben in "Hard" geklickt wurde (56-52 checken)
             MOV DL, 56
 hardCheck:  MOV AH, 02h
             MOV BH, 0
@@ -55,7 +56,7 @@ hardCheck:  MOV AH, 02h
             DEC DL
             CMP DL, 52
             JNE hardCheck
-;Gucken, ob auf einen Buchstaben in "Normal" geklickt wird (42-37 checken)
+            ;Gucken, ob auf einen Buchstaben in "Normal" geklickt wurde (42-37 checken)
             SUB DL, 10  	    ;DL = 42
 normCheck:  MOV AH, 02h
             MOV BH, 0
@@ -72,7 +73,7 @@ normCheck:  MOV AH, 02h
             DEC DL
             CMP DL, 36
             JNE normCheck
-;Gucken, ob auf einen Buchstaben in "Easy" geklickt wird (26-22 checken)
+            ;Gucken, ob auf einen Buchstaben in "Easy" geklickt wurde (26-22 checken)
             SUB DL, 10          ;DL = 26
 easyCheck:  MOV AH, 02h
             MOV BH, 0
@@ -146,7 +147,7 @@ printFrame  PROC                ;Prozedur zum Zeichnen des Rahmens
             INT 10h             ;Zeichen schreiben
 
             MOV DH, 1           ;y = 1
-;Zeichnet den linken Rand
+            ;Zeichnet den linken Rand
 leftSide:   MOV AH, 02h
             MOV BH, 0
             MOV DL, 0
@@ -163,7 +164,7 @@ leftSide:   MOV AH, 02h
             CMP DH, 24          ;Wir gehen 24 Zeilen runter
             JNE leftSide        ;Falls nicht equal -> Weiter mit der linken Seite
 
-;Zeichnet den rechten Rand
+            ;Zeichnet den rechten Rand
 rightSide:  MOV AH, 02h
             MOV BH, 0
             MOV DL, 79
@@ -365,13 +366,13 @@ checkScore  PROC                ;Prozedur um zu gucken ob der Punktestand zum Ge
             JE easyMode
             CMP mode, 2         ;Normal
             JE normalMode
-            JMP hardMode        ;Hard, weil mehr Modi gibt es ja nicht
+            JMP hardMode        ;Hard
 
 easyMode:   CMP score, 15       ;Ab 15 Punkten erhoeht sich die Geschwindigkeit
             JE easyDEC
-            CMP score, 30       ;Falls man die Punktezahl 30 erreicht hat
+            CMP score, 30       ;Falls man die Punktezahl 30 erreicht hat gewinnt man
             JNE endScore
-            MOV DX, OFFSET win  ;DX bekommt den OFFSET des Zeigers der den "win" - String angibt
+            MOV DX, OFFSET win
             JMP ende
 
 easyDEC:    DEC speed
@@ -379,9 +380,9 @@ easyDEC:    DEC speed
 
 normalMode: CMP score, 20       ;Ab 20 Punkten erhoeht sich die Geschwindigkeit
             JE normalDEC
-            CMP score, 40       ;Falls man die Punktezahl 40 erreicht hat
+            CMP score, 40       ;Falls man die Punktezahl 40 erreicht hat gewinnt man
             JNE endScore
-            MOV DX, OFFSET win  ;DX bekommt den OFFSET des Zeigers der den "win" - String angibt
+            MOV DX, OFFSET win
             JMP ende
 
 normalDEC:  DEC speed
@@ -389,9 +390,9 @@ normalDEC:  DEC speed
 
 hardMode:   CMP score, 35       ;Ab 35 Punkten erhoeht sich die Geschwindigkeit
             JE hardDEC
-            CMP score, 50       ;Falls man die Punktezahl 50 erreicht hat
+            CMP score, 50       ;Falls man die Punktezahl 50 erreicht hat gewinnt man
             JNE endScore
-            MOV DX, OFFSET win  ;DX bekommt den OFFSET des Zeigers der den "win" - String angibt
+            MOV DX, OFFSET win
             JMP ende
 
 hardDEC:    DEC speed
@@ -405,17 +406,17 @@ randomDL    PROC                ;Prozedur um eine Randomzahl fuer DL zu erzeugen
                                 ;gestartet ist. Diese Zeit ist voruebergehend und dauert nur solange das System eingeschaltet ist.
 
             MOV AX, DX          ;DX in AX rein
-            XOR DX, DX          ;DX leeren
-            XOR CX, CX          ;CX leeren
-            MOV CX, 10          ;CX bekommt die 10
+            XOR DX, DX
+            XOR CX, CX
+            MOV CX, 10
             DIV CX              ;AX/10 weil wir nur eine Ganzzahl brauchen
                                 ;Liegt der <Quelloperand> im 16-Bit-Format vor, dann steht das Ergebnis der Division im Registerpaar AX:DX
                                 ;In DL steht der Rest
-            CMP DL, 0           ;Kleiner Fix um sicherzugehen, dass keine kleinere Zahl als 1 rauskommt
+            CMP DL, 0
             JE istNullDL
             JMP endRandDL
 
-istNullDL:  INC DL              ;Inkrementiere DL solange
+istNullDL:  INC DL              ;Inkrementiere DL
 
 endRandDL:  SHL DL, 3           ;Sowas wie Multiplikation mit 8, max Wert: 8*9 = 72, min Wert: 8*1 = 8
             MOV randomX, DL     ;In randomX steht jetzt die Pseudorandomzahl fuer die x-Achse
@@ -449,7 +450,7 @@ randomDH    ENDP
 printFood   PROC                ;Prozedur um an Randompositionen Futter zu erzeugen
 foodStart:  CALL randomDL
             CALL randomDH
-            CALL randomTest
+            ;CALL randomTest    ;Nur zum Test der Randomzahlen
 
             MOV AH, 02h
             MOV BH, 0
@@ -473,6 +474,7 @@ foodStart:  CALL randomDL
             RET
 printFood   ENDP
 
+;test
 checkFood   PROC                ;Prozedur um zu sehen ob der Kopf der Schlange mit der Position des Futters uebereinstimmt
             XOR DI, DI
             XOR DX, DX
@@ -493,7 +495,7 @@ checkFood   PROC                ;Prozedur um zu sehen ob der Kopf der Schlange m
             JMP endCheck
 
 foodHit:    ADD DL, BL
-            ADD DH, BH          ;Einzeln, weil es ansonsten Probleme gab (keine ahnung wieso)
+            ADD DH, BH
             MOV snakeX[DI+1], DL
             MOV snakeY[DI+1], DH
             INC snakeSize
@@ -501,27 +503,25 @@ foodHit:    ADD DL, BL
             CALL checkScore
             CALL sound          ;Aufruf der Prozedur um einen Sound entsprechend der Situation zu spielen
             CALL printFood
-            JMP calls           ;Damit die Schlange nicht 2 Pixel springt muss ich early raus (siehe Erklaerung)
+            JMP calls           ;Damit die Schlange nicht 2 Pixel springt muss man early raus (siehe Erklaerung)
 endCheck:   RET
 checkFood   ENDP
 
 oldISRback  PROC                ;Prozedur zum Wiederherstellen der alten ISR1Ch
-            PUSH DS             ;Koennte Eventuell Probleme machen
+            PUSH DS
             MOV DX, oldIOFF
             MOV AX, oldISeg
-            MOV DS, AX          ;Kleiner Umweg, da man DS nicht direkt beschreiben kann
-                                ;in DS:DX steht jetzt die alte Adresse
+            MOV DS, AX
             MOV AL, 1Ch
             MOV AH, 25h         ;Interrupt setzen
             INT 21h
-            POP DS              ;Reihenfolge beachten!
+            POP DS
             RET
 oldISRback  ENDP
 
 endscreen   PROC                ;Prozedur zum Abarbeiten der Sachen, die ich am Schluss brauche
             CMP DX, OFFSET win  ;Falls der OFFSET des Zeigers der den "win"-String angibt in DX drinsteht (also man den passenden score erreicht hat)
-            JE printEnd         ;Ausgabe
-
+            JE printEnd
             MOV DX, OFFSET lose ;Ansonsten wird der OFFSET des Zeigers der den "lose"-String angibt ausgewaehlt und ausgegeben
 
 printEnd:   MOV AH, 00h
@@ -530,6 +530,6 @@ printEnd:   MOV AH, 00h
 
             MOV AH, 09h
             INT 21h             ;Zeichenkette darstellen
-            CALL sound          ;Aufruf der Prozedur um einen Sound entsprechend der Situation zu spielen
+            CALL sound
             RET
 endscreen   ENDP
