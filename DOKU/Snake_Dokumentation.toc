@@ -1,0 +1,9 @@
+\selectlanguage *[spelling=new,babelshorthands=true]{german}
+\contentsline {section}{\numberline {1}Spiel}{2}{section.1}%
+\contentsline {subsection}{\numberline {1.1}Anleitung}{2}{subsection.1.1}%
+\contentsline {subsection}{\numberline {1.2}Besonderheiten}{2}{subsection.1.2}%
+\contentsline {section}{\numberline {2}Entwurfsskizzen}{3}{section.2}%
+\contentsline {section}{\numberline {3}Programmarchitektur}{5}{section.3}%
+\contentsline {section}{\numberline {4}Tests}{6}{section.4}%
+\contentsline {subsection}{\numberline {4.1}Random Numbergenerator Test 1}{6}{subsection.4.1}%
+\contentsline {subsection}{\numberline {4.2}Random Numbergenerator Test 2}{7}{subsection.4.2}%
