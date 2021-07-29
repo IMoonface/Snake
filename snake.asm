@@ -8,7 +8,7 @@
 ;==============================================================================
             .MODEL SMALL
             .386
-video_seg   = 0B800h
+video_seg   = 0B800h            ;Um in den Videospeicher zu schreiben
             .DATA
 ;***************************** DATASEGMENT ************************************
 snakeX      DB  5,  6,  7,  8, 50 dup(0) ;"50 Duplikate von 0"

@@ -10,7 +10,7 @@ printLogo   PROC                ;Prozedur zum Printen des Logos
             INT 10h
 
             MOV AH, 09h
-            MOV DX, OFFSET logo
+            MOV DX, OFFSET logo ;Offset des Zeigers, der eine mit $ abgeschlossene Zeichenkette angibt
             INT 21h             ;Zeichenkette darstellen
             RET
 printLogo   ENDP
@@ -89,7 +89,7 @@ leftSide:   MOV AH, 02h
             MOV CX, 1
             INT 10h             ;Zeichen schreiben
 
-            INC DH              ;Addiert auf das DH Register eine 1
+            INC DH
             CMP DH, 24          ;Wir gehen 24 Zeilen runter
             JNE leftSide
 
@@ -193,7 +193,7 @@ zehner:     XOR BL, BL
             INT 10h             ;Zeichen schreiben
 
             MOV AL, divrest     ;In AL den Rest der Division schieben
-            INC DL              ;DI+1
+            INC DL              
 
 printEiner: ADD AL, '0'
             MOV AH, 02h
@@ -282,7 +282,7 @@ randomDL    PROC                ;Prozedur um eine Randomzahl fuer DL zu erzeugen
             JE istNullDL
             JMP endRandDL
 
-istNullDL:  INC DL              ;Inkrementiere DL
+istNullDL:  INC DL              ;Damit wir min. eine 1 bekommen
 
 endRandDL:  SHL DL, 3           ;Sowas wie Multiplikation mit 8, max Wert: 8*9 = 72, min Wert: 8*1 = 8
             MOV randomX, DL
