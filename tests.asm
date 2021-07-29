@@ -88,10 +88,12 @@ hardMode:   CMP score, 35       ;Ab 35 Punkten erhoeht sich die Geschwindigkeit
             JMP ende
 
 hardDEC:    DEC speed
+
 endScore:   RET
 checkScore  ENDP
 
 checkPosi   PROC                ;Prozedur um zu testen, ob Easy, Normal oder Hard angeklickt wurde
+
             ;Gucken, ob auf einen Buchstaben in "Hard" geklickt wurde (56-52 checken)
             MOV DL, 56
 hardCheck:  MOV AH, 02h
@@ -110,6 +112,7 @@ hardCheck:  MOV AH, 02h
             DEC DL
             CMP DL, 52
             JNE hardCheck
+
             ;Gucken, ob auf einen Buchstaben in "Normal" geklickt wurde (42-37 checken)
             SUB DL, 10  	    ;DL = 42
 normCheck:  MOV AH, 02h
@@ -127,6 +130,7 @@ normCheck:  MOV AH, 02h
             DEC DL
             CMP DL, 36
             JNE normCheck
+
             ;Gucken, ob auf einen Buchstaben in "Easy" geklickt wurde (26-22 checken)
             SUB DL, 10          ;DL = 26
 easyCheck:  MOV AH, 02h
@@ -159,6 +163,7 @@ normConfig: MOV counter, 3
 hardConfig: MOV counter, 2
             MOV speed, 2
             MOV mode, 3         ;Hard
+
 endPosi:    RET
 checkPosi   ENDP
 
@@ -191,5 +196,6 @@ foodHit:    ADD DL, BL
             CALL sound          ;Aufruf der Prozedur um einen Sound entsprechend der Situation zu spielen
             CALL printFood
             JMP calls           ;Damit die Schlange nicht 2 Pixel springt muss man early raus (siehe Erklaerung)
+            
 endCheck:   RET
 checkFood   ENDP

@@ -34,7 +34,7 @@ winnerSound DW 5000, 3250, 2000
             INCLUDE procs.asm
             INCLUDE sound.asm
             INCLUDE tests.asm
-
+            
 ;1Ch Interrupt wird alle 18tel Sekunden ausgeloest und dient als Zeitgeber
 ISR1Ch:     PUSH DS
             PUSH AX
@@ -45,8 +45,9 @@ ISR1Ch:     PUSH DS
             POP DS
             IRET
 
-begin:      MOV AX, @DATA
-            MOV DS, AX
+begin:      MOV AX, @DATA       ;Adresse des Datensegments in das Register „AX“ laden
+            MOV DS, AX          ;In DS uebertragen
+                                ;(das DS-Register kann nicht direkt mit einer Konstante beschrieben werden)
             MOV AL, 1Ch
             MOV AH, 35h
             INT 21h             ;Interrupt 21h mit AH auf 35h: Interrupt-Vektor ermitteln ((AL)	Interrupt Nummer)

@@ -18,6 +18,7 @@ printLogo   ENDP
 mausProc    PROC FAR            ;Muss FAR sein, weil vom Interrupt vorgeschrieben!
             MOV AX, video_seg
             MOV ES, AX          ;Um in den Videospeicher schreiben zu koennen, setzt man ES auf 0B800h
+
             ;DX = Vertikale Cursorposition
             SHR DX, 3           ;Y-Koord/8, weil wir nicht mit den Pixeln arbeiten wollen, sondern mit den Bloecken im Videomodus
             IMUL DX, 160        ;Vorzeichenbehaftete Multiplikation, um die Zeilenbyteadresse auszurechnen y-koord*160 (Siehe Erklaerung)
@@ -76,6 +77,7 @@ printFrame  PROC                ;Prozedur zum Zeichnen des Rahmens
             INT 10h             ;Zeichen schreiben
 
             MOV DH, 1           ;y = 1
+
             ;Zeichnet den linken Rand
 leftSide:   MOV AH, 02h
             MOV BH, 0
@@ -156,8 +158,10 @@ printScore  PROC                ;Prozedur um "Score" zu printen
 
 easyPrint:  MOV DX, OFFSET easyScore
             JMP goalPrint
+
 medPrint:   MOV DX, OFFSET mediumScore
             JMP goalPrint
+
 hardPrint:  MOV DX, OFFSET hardScore
 
 goalPrint:  MOV AH, 09h
@@ -193,7 +197,7 @@ zehner:     XOR BL, BL
             INT 10h             ;Zeichen schreiben
 
             MOV AL, divrest     ;In AL den Rest der Division schieben
-            INC DL              
+            INC DL
 
 printEiner: ADD AL, '0'
             MOV AH, 02h
@@ -213,6 +217,7 @@ printSnake  PROC                ;Prozedur um die Schlange zu printen
             CALL printPoints    ;Aufruf der Prozedur um die Punktzahl mit Potenzzerlegung zu zerlegen, falls sie zu gross wird, um sie auszugeben
             XOR DI, DI
             DEC DI
+
 ;Schleife um alle Eintraege des snakeX und snakeY Arrays durchzugehen
 printLoop:  INC DI              ;DI hochzaehlen (mussten wir leider so ungeschickt loesen)
             MOV AH, 02h
@@ -253,6 +258,7 @@ deleteTail  ENDP
 resetSnake  PROC                ;Prozedur um den body der Schlange anzupassen (so sieht es aus als wuerde sie sich bewegen)
             XOR CX, CX
             XOR DI, DI
+            
 ;Die Werte des Arrays werden "durchgereicht", also der Wert an Indexstelle 0 bekommt den Wert an Indexstelle 1 und dieser bekommt wiederrum den an Indexstelle 2 usw.
 resetLoop:  MOV CL, snakeX[DI+1]
             MOV CH, snakeY[DI+1]
