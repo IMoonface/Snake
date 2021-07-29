@@ -1,8 +1,8 @@
 printLogo   PROC                ;Prozedur zum Printen des Logos
-            MOV AH, 02h         ;BH = Seitennummer, DL = Spalte, DH = Zeile
-            MOV BH, 0
-            MOV DL, 0
-            MOV DH, 0           ;Position 0,0 (DL = x, DH = y)
+            MOV AH, 02h
+            MOV BH, 0           ;BH = Seitennummer
+            MOV DL, 0           ;DL = Spalte
+            MOV DH, 0           ;DH = Zeile, Position 0,0 (DL = x, DH = y)
             INT 10h             ;Cursor setzen
 
             MOV AH, 01h
@@ -29,86 +29,15 @@ mausProc    PROC FAR            ;Muss FAR sein, weil vom Interrupt vorgeschriebe
             ADD CX, DX          ;In CX steht jetzt unsere Bildschirmposition
             MOV DI, CX          ;Umweg mit DI, weil wir nicht direkt CX benutzen koennen (Illegal indexing mode)
                                 ;Da der Assembler nicht weiß, ob es sich um ein Byte oder Word handelt muessen wir es ihm sagen
-            MOV WORD PTR ES:[DI], 1h ;1h = Das was wir an die Stelle der Maus zeichnen, sobald diese gedrueckt wird (Brauchen wir nur fuer den Vergleich)
-            CALL checkPosi      ;Prozedur um zu checken, ob man Easy, Normal oder Hard angeklickt hat
+            MOV WORD PTR ES:[DI], 1h
+            CALL checkPosi      ;Aufruf der Prozedur um zu testen, ob Easy, Normal oder Hard angeklickt wurde
 
             MOV AX, 01h         ;Zeige Mauszeiger, damit das Zeichen was wir geschrieben haben nicht den Mauszeiger verdeckt
             INT 33h
             RET                 ;Zum zurueckspringen
 mausProc    ENDP
 
-;test
-checkPosi   PROC                ;Prozedur um zu checken, ob man Easy, Normal oder Hard angeklickt hat
-            ;Gucken, ob auf einen Buchstaben in "Hard" geklickt wurde (56-52 checken)
-            MOV DL, 56
-hardCheck:  MOV AH, 02h
-            MOV BH, 0
-            MOV DH, 16
-            INT 10h             ;Cursor setzen
-
-            MOV AH, 08h         ;-> AH = 08h, BH = Seitennummer, AH = Farbwert, AL = Zeichen
-            MOV BH, 0
-            INT 10h             ;Lese Zeichen und Attribut an der Cursorposition.
-
-            CMP AL, 1h
-            JE hardConfig
-
-            DEC DL
-            CMP DL, 52
-            JNE hardCheck
-            ;Gucken, ob auf einen Buchstaben in "Normal" geklickt wurde (42-37 checken)
-            SUB DL, 10  	    ;DL = 42
-normCheck:  MOV AH, 02h
-            MOV BH, 0
-            MOV DH, 16
-            INT 10h             ;Cursor setzen
-
-            MOV AH, 08h
-            MOV BH, 0
-            INT 10h             ;Lese Zeichen und Attribut an der Cursorposition.
-
-            CMP AL, 1h
-            JE normConfig
-
-            DEC DL
-            CMP DL, 36
-            JNE normCheck
-            ;Gucken, ob auf einen Buchstaben in "Easy" geklickt wurde (26-22 checken)
-            SUB DL, 10          ;DL = 26
-easyCheck:  MOV AH, 02h
-            MOV BH, 0
-            MOV DH, 16
-            INT 10h             ;Cursor setzen
-
-            MOV AH, 08h
-            MOV BH, 0
-            INT 10h             ;Lese Zeichen und Attribut an der Cursorposition.
-
-            CMP AL, 1h
-            JE easyConfig
-
-            DEC DL
-            CMP DL, 22
-            JNE easyCheck
-            JMP endPosi         ;Falls es an keiner Posi eine Uebereinstimmung gab
-
-easyConfig: MOV counter, 4
-            MOV speed, 4
-            MOV mode, 1         ;Easy
-            JMP endPosi
-
-normConfig: MOV counter, 3
-            MOV speed, 3
-            MOV mode, 2         ;Normal
-            JMP endPosi
-
-hardConfig: MOV counter, 2
-            MOV speed, 2
-            MOV mode, 3         ;Hard
-endPosi:    RET
-checkPosi   ENDP
-
-difficulty  PROC
+difficulty  PROC                ;Prozedur um den Schwierigkeitsgrad zu ermitteln
             MOV AX, 0Ch         ;Benutzerdefinierte Unterroutine und Eingabemaske fuer die Maus festlegen
             PUSH CS             ;Wir benoetigen ES:DX = far pointer to user interrupt, dazu pushen wir CS
             POP ES              ;und laden es in ES
@@ -162,7 +91,7 @@ leftSide:   MOV AH, 02h
 
             INC DH              ;Addiert auf das DH Register eine 1
             CMP DH, 24          ;Wir gehen 24 Zeilen runter
-            JNE leftSide        ;Falls nicht equal -> Weiter mit der linken Seite
+            JNE leftSide
 
             ;Zeichnet den rechten Rand
 rightSide:  MOV AH, 02h
@@ -236,7 +165,7 @@ goalPrint:  MOV AH, 09h
             RET
 printScore  ENDP
 
-printPoints PROC                ;Prozedur um die Punktzahl mit Potenzzerlegung zu zerlegen, falls sie zu gross wird um sie auszugeben
+printPoints PROC                ;Prozedur um die Punktzahl mit Potenzzerlegung zu zerlegen, falls sie zu gross wird, um sie auszugeben
             XOR AX, AX
             MOV AL, score
             MOV DL, 40
@@ -246,7 +175,7 @@ printPoints PROC                ;Prozedur um die Punktzahl mit Potenzzerlegung z
             JMP printEiner      ;Ansonsten printe nur die Einerstelle
 
 zehner:     XOR BL, BL
-            MOV BL, 10          ;Es geht auch 0Ah
+            MOV BL, 10
             DIV BL              ;Wurde AX durch einen 8-Bit-Wert geteilt, so steht der Quotient im AL-Register und der Rest im AH-Register
             ADD AL, '0'         ;Addiert eine 48 (ASCII Wert fuer 0), um es als Zeichen darzustellen
 
@@ -281,15 +210,15 @@ printEiner: ADD AL, '0'
 printPoints ENDP
 
 printSnake  PROC                ;Prozedur um die Schlange zu printen
-            CALL printPoints    ;Prozedur um die Punktzahl zu printen
+            CALL printPoints    ;Aufruf der Prozedur um die Punktzahl mit Potenzzerlegung zu zerlegen, falls sie zu gross wird, um sie auszugeben
             XOR DI, DI
-            DEC DI              ;DI (destination index) wird hier als Zeiger genommen
+            DEC DI
 ;Schleife um alle Eintraege des snakeX und snakeY Arrays durchzugehen
-printLoop:  INC DI              ;DI hochzaehlen (musste ich leider so ungeschickt loesen)
+printLoop:  INC DI              ;DI hochzaehlen (mussten wir leider so ungeschickt loesen)
             MOV AH, 02h
             MOV BH, 0
             MOV DL, snakeX[DI]
-            MOV DH, snakeY[DI]  ;Setzt den Cursor an snakeX[DI] und snakeY[DI]
+            MOV DH, snakeY[DI]
             INT 10h
 
             MOV AH, 09h
@@ -299,17 +228,17 @@ printLoop:  INC DI              ;DI hochzaehlen (musste ich leider so ungeschick
             MOV CX, 1
             INT 10h
 
-            CMP DI, snakeSize   ;Bis DI = snakeSize
+            CMP DI, snakeSize
             JNE printLoop
             RET
 printSnake  ENDP
 
-deleteTail  PROC                ;Prozedur um den Schwanz der Schlange zu loeschen, damit keine endlose Spur hinter sich hergezogen wird
+deleteTail  PROC                ;Prozedur um den Schwanz der Schlange zu loeschen (damit keine endlose Spur hinter sich hergezogen wird)
             XOR DI, DI
             MOV AH, 02h
             MOV BH, 0
-            MOV DL, snakeX[DI]  ;Ersten Eintrag des snakeX-Arrays in DL speichern
-            MOV DH, snakeY[DI]  ;Ersten Eintrag des snakeY-Arrays in DH speichern
+            MOV DL, snakeX[DI]
+            MOV DH, snakeY[DI]
             INT 10h             ;Cursor setzen
 
             MOV AH, 09h
@@ -324,8 +253,7 @@ deleteTail  ENDP
 resetSnake  PROC                ;Prozedur um den body der Schlange anzupassen (so sieht es aus als wuerde sie sich bewegen)
             XOR CX, CX
             XOR DI, DI
-;Die Werte des Arrays werden "durchgereicht", also der Wert an Indexstelle 0 bekommt den Wert an Indexstelle 1 .
-;Dieser bekommt wiederrum den an Indexstelle 2 usw.
+;Die Werte des Arrays werden "durchgereicht", also der Wert an Indexstelle 0 bekommt den Wert an Indexstelle 1 und dieser bekommt wiederrum den an Indexstelle 2 usw.
 resetLoop:  MOV CL, snakeX[DI+1]
             MOV CH, snakeY[DI+1]
             MOV snakeX[DI], CL
@@ -337,75 +265,13 @@ resetLoop:  MOV CL, snakeX[DI+1]
             RET
 resetSnake  ENDP
 
-;ist schon ein test an sich
-collision   PROC                ;Ueberpruefen ob sich die Schlange selber frisst oder der Rand getroffen wurde
-            XOR DI, DI
-            XOR DX, DX
-            MOV DI, snakeSize
-
-            MOV AH, 02h
-            MOV BH, 0
-            MOV DL, snakeX[DI]
-            MOV DH, snakeY[DI]
-            INT 10h             ;Cursor setzen
-
-            MOV AH, 08h
-            MOV BH, 0
-            INT 10h             ;Lese Zeichen und Attribut an der Cursorposition.
-
-            CMP AL, '+'         ;Ueberpruefen ob das Zeichen an der Cursor Position ein Teil der Schlange ist
-            JE ende
-            CMP AL, 0DBh        ;Ueberpruefen ob das Zeichen an der Cursor Position ein Teil der Rahmens ist
-            JE ende
-            RET
-collision   ENDP
-
-;zum testen
-checkScore  PROC                ;Prozedur um zu gucken ob der Punktestand zum Gewinnen erreicht wurde
-            CMP mode, 1         ;Easy
-            JE easyMode
-            CMP mode, 2         ;Normal
-            JE normalMode
-            JMP hardMode        ;Hard
-
-easyMode:   CMP score, 15       ;Ab 15 Punkten erhoeht sich die Geschwindigkeit
-            JE easyDEC
-            CMP score, 30       ;Falls man die Punktezahl 30 erreicht hat gewinnt man
-            JNE endScore
-            MOV DX, OFFSET win
-            JMP ende
-
-easyDEC:    DEC speed
-            JMP endScore
-
-normalMode: CMP score, 20       ;Ab 20 Punkten erhoeht sich die Geschwindigkeit
-            JE normalDEC
-            CMP score, 40       ;Falls man die Punktezahl 40 erreicht hat gewinnt man
-            JNE endScore
-            MOV DX, OFFSET win
-            JMP ende
-
-normalDEC:  DEC speed
-            JMP endScore
-
-hardMode:   CMP score, 35       ;Ab 35 Punkten erhoeht sich die Geschwindigkeit
-            JE hardDEC
-            CMP score, 50       ;Falls man die Punktezahl 50 erreicht hat gewinnt man
-            JNE endScore
-            MOV DX, OFFSET win
-            JMP ende
-
-hardDEC:    DEC speed
-endScore:   RET
-checkScore  ENDP
-
 ;Quelle: https://stackoverflow.com/questions/17855817/generating-a-random-number-within-range-of-0-9-in-x86-8086-assembly
 randomDL    PROC                ;Prozedur um eine Randomzahl fuer DL zu erzeugen
             MOV AH, 00h         ;Interrupt um die Systemzeit zu erhalten, CX Hoeherer Teil der Taktzaehlung, DX Niederwertiger Teil der Taktzaehlung
             INT 1Ah             ;Der "System-Timer" (im Unterschied zum realen Zeitschaltuhr) ist der Timer, der eingestellt wird, wenn das System
                                 ;gestartet ist. Diese Zeit ist voruebergehend und dauert nur solange das System eingeschaltet ist.
 
-            MOV AX, DX          ;DX in AX rein
+            MOV AX, DX
             XOR DX, DX
             XOR CX, CX
             MOV CX, 10
@@ -419,7 +285,7 @@ randomDL    PROC                ;Prozedur um eine Randomzahl fuer DL zu erzeugen
 istNullDL:  INC DL              ;Inkrementiere DL
 
 endRandDL:  SHL DL, 3           ;Sowas wie Multiplikation mit 8, max Wert: 8*9 = 72, min Wert: 8*1 = 8
-            MOV randomX, DL     ;In randomX steht jetzt die Pseudorandomzahl fuer die x-Achse
+            MOV randomX, DL
             RET
 randomDL    ENDP
 
@@ -456,56 +322,22 @@ foodStart:  CALL randomDL
             MOV BH, 0
             MOV DL, randomX
             MOV DH, randomY
-            INT 10h             ;Cursor setzen (Futterposition)
+            INT 10h             ;Cursor setzen
 
             MOV AH, 08h
             MOV BH, 0
             INT 10h             ;Zuerst Zeichen an der Stelle lesen denn
-
             CMP AL, '+'         ;man muss sicherstellen, das das Futter nicht an der Stelle eines Schlangenkoerperteils spawnen kann
-            JE foodStart        ;falls es doch so ist
+            JE foodStart
 
             MOV AH, 09h
             MOV BH, 0
             MOV AL, 0FEh        ;Zeichen: "black square"
             MOV CX, 1
-            MOV BL, 00001100b   ;Farbe Rosa (Fleischfarbe)
+            MOV BL, 00001100b   ;Farbe: Rosa (Fleischfarbe)
             INT 10h             ;Zeichen schreiben
             RET
 printFood   ENDP
-
-;test
-checkFood   PROC                ;Prozedur um zu sehen ob der Kopf der Schlange mit der Position des Futters uebereinstimmt
-            XOR DI, DI
-            XOR DX, DX
-            MOV DI, snakeSize
-
-            MOV AH, 02h
-            MOV BH, 0
-            MOV DL, randomX
-            MOV DH, randomY
-            INT 10h             ;Cursor setzen
-
-            MOV AH, 08h
-            MOV BH, 0
-            INT 10h             ;Lese Zeichen und Attribut an der Cursorposition.
-
-            CMP AL, '+'         ;Ueberpruefen ob das Zeichen an der Cursor Position ein Teil der Schlange ist
-            JE foodHit
-            JMP endCheck
-
-foodHit:    ADD DL, BL
-            ADD DH, BH
-            MOV snakeX[DI+1], DL
-            MOV snakeY[DI+1], DH
-            INC snakeSize
-            INC score
-            CALL checkScore
-            CALL sound          ;Aufruf der Prozedur um einen Sound entsprechend der Situation zu spielen
-            CALL printFood
-            JMP calls           ;Damit die Schlange nicht 2 Pixel springt muss man early raus (siehe Erklaerung)
-endCheck:   RET
-checkFood   ENDP
 
 oldISRback  PROC                ;Prozedur zum Wiederherstellen der alten ISR1Ch
             PUSH DS
@@ -519,7 +351,7 @@ oldISRback  PROC                ;Prozedur zum Wiederherstellen der alten ISR1Ch
             RET
 oldISRback  ENDP
 
-endscreen   PROC                ;Prozedur zum Abarbeiten der Sachen, die ich am Schluss brauche
+endscreen   PROC                ;Prozedur zum Abarbeiten der Sachen, die wir am Schluss brauchen
             CMP DX, OFFSET win  ;Falls der OFFSET des Zeigers der den "win"-String angibt in DX drinsteht (also man den passenden score erreicht hat)
             JE printEnd
             MOV DX, OFFSET lose ;Ansonsten wird der OFFSET des Zeigers der den "lose"-String angibt ausgewaehlt und ausgegeben
@@ -529,7 +361,7 @@ printEnd:   MOV AH, 00h
             INT 10h             ;Bildschirm loeschen
 
             MOV AH, 09h
-            INT 21h             ;Zeichenkette darstellen
+            INT 21h
             CALL sound
             RET
 endscreen   ENDP

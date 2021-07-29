@@ -4,6 +4,7 @@
 ;Programmiert von: Marc Uxa (71922) & Benjamin Huber (73964)
 ;Zum Kompilieren: tasm snake.asm & tlink snake.obj
 ;Zum Ausfuehren: snake
+;Getestet in: DOSBox 0.74-3
 ;==============================================================================
             .MODEL SMALL
             .386
@@ -60,14 +61,14 @@ begin:      MOV AX, @DATA
             MOV AL, 1Ch
             MOV AH, 25h
             INT 21h             ;Interrupt 21h mit AH auf 25h: Interrupt-Vektor setzen ((AL) Interrupt Nummer)
-                                ;Damit setzen wir jetzt unsere eigens definierte ISR1Ch
+                                ;Damit setzen wir unsere eigens definierte ISR1Ch
             POP DS
 
             MOV AH, 00h
             MOV AL, 3           ;Videomodus3 -> 640x200 Pixel mit 16 Farben (in 80x25 Bloecken)
             INT 10h             ;Zeichenbildschirm einstellen
 
-            CALL printLogo      ;Aufruf der Prozedur um "Logo" zu printen
+            CALL printLogo      ;Aufruf der Prozedur zum Printen des Logos
             CALL difficulty     ;Aufruf der Prozedur um den Schwierigkeitsgrad zu ermitteln
 
             MOV AH, 01h
@@ -76,10 +77,10 @@ begin:      MOV AX, @DATA
 
             CALL printScore     ;Aufruf der Prozedur um "Score" zu printen
             CALL printFrame     ;Aufruf der Prozedur zum Zeichnen des Rahmens
-            CALL printSnake     ;Aufruf der Prozedur zum Zeichnen der Schlange
+            CALL printSnake     ;Aufruf der Prozedur um die Schlange zu printen
             CALL deleteTail     ;Aufruf der Prozedur um den Schwanz der Schlange zu loeschen
             CALL randomDL       ;Aufruf der Prozedur um eine Randomzahl fuer DL zu erzeugen
-            CALL randomDH       ;Aufruf der Prozedur um eine Randomzahl fuer DL zu erzeugen
+            CALL randomDH       ;Aufruf der Prozedur um eine Randomzahl fuer DH zu erzeugen
             CALL printFood      ;Aufruf der Prozedur um an Randompositionen Futter zu erzeugen
 
 waitForKey: MOV AH, 0Ch
@@ -171,12 +172,12 @@ escape:     CALL oldISRback     ;Aufruf der Prozedur zum Widerherstellen der alt
             MOV AH, 4Ch
             INT 21h             ;Zurueck zu DOS
 
-calls:      CALL collision      ;Prozedur um zu gucken ob sich die Schlange selber frisst oder der Rahmen berueht wurde
+calls:      CALL collision      ;Aufruf der Prozedur um zu testen ob sich die Schlange selber frisst oder der Rahmen berueht wurde
             CALL printSnake
             CALL deleteTail
             JMP waitForKey
 
-ende:       CALL endscreen      ;Aufruf der Prozedur zum Abarbeiten der Sachen am Schluss gebraucht werden
+ende:       CALL endscreen      ;Aufruf der Prozedur zum Abarbeiten der Sachen, die wir am Schluss brauchen
             CALL oldISRback
             MOV AH, 4Ch
             INT 21h             ;Zurueck zu DOS
