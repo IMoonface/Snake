@@ -169,24 +169,19 @@ checkPosi   ENDP
 
 checkFood   PROC                ;Prozedur um zu Testen, ob der Kopf der Schlange mit der Position des Futters uebereinstimmt
             XOR DI, DI
-            XOR DX, DX
             MOV DI, snakeSize
-
-            MOV AH, 02h
-            MOV BH, 0
+            XOR DX, DX
             MOV DL, randomX
             MOV DH, randomY
-            INT 10h             ;Cursor setzen
-
-            MOV AH, 08h
-            MOV BH, 0
-            INT 10h             ;Lese Zeichen und Attribut an der Cursorposition.
-
-            CMP AL, '+'         ;Ueberpruefen ob das Zeichen an der Cursor Position ein Teil der Schlange ist
-            JE foodHit
+            CMP DL, snakeX[DI]
+            JE xstimmt          ;Wenn x Position vom Kopf der Schlange mit der x Position des Futters uebereinstimmt
             JMP endCheck
 
-foodHit:    ADD DL, BL
+xstimmt:    CMP DH, snakeY[DI]
+            JE ystimmt          ;Wenn x und y Positionen vom Kopf der Schlange mit den x und y Positionen des Futters uebereinstimmen
+            JMP endCheck
+
+ystimmt:    ADD DL, BL
             ADD DH, BH
             MOV snakeX[DI+1], DL
             MOV snakeY[DI+1], DH
@@ -196,6 +191,6 @@ foodHit:    ADD DL, BL
             CALL sound          ;Aufruf der Prozedur um einen Sound entsprechend der Situation zu spielen
             CALL printFood
             JMP calls           ;Damit die Schlange nicht 2 Pixel springt muss man early raus (siehe Erklaerung)
-            
+
 endCheck:   RET
 checkFood   ENDP
