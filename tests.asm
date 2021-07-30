@@ -174,23 +174,19 @@ checkFood   PROC                ;Prozedur um zu Testen, ob der Kopf der Schlange
             MOV DL, randomX
             MOV DH, randomY
             CMP DL, snakeX[DI]
-            JE xstimmt          ;Wenn x Position vom Kopf der Schlange mit der x Position des Futters uebereinstimmt
+            JE xCheck           ;Wenn x Position vom Kopf der Schlange mit der x Position des Futters uebereinstimmt
             JMP endCheck
 
-xstimmt:    CMP DH, snakeY[DI]
-            JE ystimmt          ;Wenn x und y Positionen vom Kopf der Schlange mit den x und y Positionen des Futters uebereinstimmen
+xCheck:     CMP DH, snakeY[DI]
+            JE yCheck           ;Wenn x und y Positionen vom Kopf der Schlange mit den x und y Positionen des Futters uebereinstimmen
             JMP endCheck
 
-ystimmt:    ADD DL, BL
-            ADD DH, BH
-            MOV snakeX[DI+1], DL
-            MOV snakeY[DI+1], DH
+yCheck:     CALL snakeInc       ;DAS FUNKTIONIERT NUR WEIL DER EIGENTLICHE SCHWANZ GELOESCHT WIRD
             INC snakeSize
             INC score
-            CALL checkScore
+            CALL checkScore     ;Aufruf der Prozedur um zu testen, ob der Punktestand zum Gewinnen erreicht wurde
             CALL sound          ;Aufruf der Prozedur um einen Sound entsprechend der Situation zu spielen
             CALL printFood
-            JMP calls           ;Damit die Schlange nicht 2 Pixel springt muss man early raus (siehe Erklaerung)
-
+            
 endCheck:   RET
 checkFood   ENDP

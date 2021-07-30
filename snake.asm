@@ -34,7 +34,7 @@ winnerSound DW 5000, 3250, 2000
             INCLUDE procs.asm
             INCLUDE sound.asm
             INCLUDE tests.asm
-            
+
 ;1Ch Interrupt wird alle 18tel Sekunden ausgeloest und dient als Zeitgeber
 ISR1Ch:     PUSH DS
             PUSH AX
@@ -126,10 +126,6 @@ noButton:   CMP movflag, 1
 
 moveUp:     CMP movflag, 2      ;Um zu verhindern, dass man direkt nach down nicht wieder up machen kann
             JE noButton
-            XOR BX, BX
-            MOV BH, -1          ;Kleiner Fix, weil ansonsten das neue Element im Schlangen Array an die Stelle
-                                ;der derzeitigen Position geschrieben werden wuerde und man so nochmal warten muesste
-                                ;bis sich die Schlange "aktualisiert" (Siehe Erklaerung)
             MOV movflag, 1
             CALL checkFood      ;Aufruf der Prozedur um zu sehen ob der Kopf der Schlange mit der Position des Futters uebereinstimmt
             CALL resetSnake     ;Aufruf der Prozedur um den body der Schlange anzupassen
@@ -138,8 +134,6 @@ moveUp:     CMP movflag, 2      ;Um zu verhindern, dass man direkt nach down nic
 
 moveDown:   CMP movflag, 1      ;Um zu verhindern, dass man direkt nach up nicht wieder down machen kann
             JE noButton
-            XOR BX, BX
-            MOV BH, 1
             MOV movflag, 2
             CALL checkFood
             CALL resetSnake
@@ -148,8 +142,6 @@ moveDown:   CMP movflag, 1      ;Um zu verhindern, dass man direkt nach up nicht
 
 moveLeft:   CMP movflag, 4      ;Um zu verhindern, dass man direkt nach right nicht wieder left machen kann
             JE noButton
-            XOR BX, BX
-            MOV BL, -1
             MOV movflag, 3
             CALL checkFood
             CALL resetSnake
@@ -158,8 +150,6 @@ moveLeft:   CMP movflag, 4      ;Um zu verhindern, dass man direkt nach right ni
 
 moveRight:  CMP movflag, 3      ;Um zu verhindern, dass man direkt nach left nicht wieder right machen kann
             JE noButton
-            XOR BX, BX
-            MOV BL, 1
             MOV movflag, 4
             CALL checkFood
             CALL resetSnake

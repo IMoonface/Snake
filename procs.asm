@@ -258,8 +258,9 @@ deleteTail  ENDP
 resetSnake  PROC                ;Prozedur um den body der Schlange anzupassen (so sieht es aus als wuerde sie sich bewegen)
             XOR CX, CX
             XOR DI, DI
-            
-;Die Werte des Arrays werden "durchgereicht", also der Wert an Indexstelle 0 bekommt den Wert an Indexstelle 1 und dieser bekommt wiederrum den an Indexstelle 2 usw.
+
+;Die Werte des Arrays werden "durchgereicht", also der Wert an Indexstelle 0 bekommt den Wert an
+;Indexstelle 1 und dieser bekommt wiederrum den an Indexstelle 2 usw.
 resetLoop:  MOV CL, snakeX[DI+1]
             MOV CH, snakeY[DI+1]
             MOV snakeX[DI], CL
@@ -270,6 +271,25 @@ resetLoop:  MOV CL, snakeX[DI+1]
             MOV DI, snakeSize   ;Gleich schon setzen, weil wir es im entsprechenden "move*"-label gleich brauchen
             RET
 resetSnake  ENDP
+
+snakeInc    PROC                ;Prozedur um den body der Schlange zu verlaengern
+            XOR DI, DI
+            XOR CX, CX
+            MOV DI, snakeSize
+
+;Die Werte des Arrays werden "durchgeschoben", also der Wert an der hoechsten Indexstelle+1 bekommt den Wert
+;der hoechsten Indexstelle und dieser bekommt wiederrum den Wert an der 2t hoechsten Indexstelle usw.
+snakeLoop:  MOV CL, snakeX[DI]
+            MOV CH, snakeY[DI]
+            MOV snakeX[DI+1], CL
+            MOV snakeY[DI+1], CH
+            DEC DI
+            CMP DI, 0
+            JNE snakeLoop
+            MOV snakeX[DI], 1h
+            MOV snakeY[DI], 1h
+            RET
+snakeInc    ENDP
 
 ;Quelle: https://stackoverflow.com/questions/17855817/generating-a-random-number-within-range-of-0-9-in-x86-8086-assembly
 randomDL    PROC                ;Prozedur um eine Randomzahl fuer DL zu erzeugen
