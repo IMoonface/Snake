@@ -33,31 +33,32 @@ mausProc    PROC FAR            ;Muss FAR sein, weil vom Interrupt vorgeschriebe
             MOV WORD PTR ES:[DI], 1h
             CALL checkPosi      ;Aufruf der Prozedur um zu testen, ob Easy, Normal oder Hard angeklickt wurde
 
-            MOV AX, 01h         ;Zeige Mauszeiger, damit das Zeichen was wir geschrieben haben nicht den Mauszeiger verdeckt
-            INT 33h
-            RET                 ;Zum zurueckspringen
+            MOV AX, 01h
+            INT 33h             ;Zeige Mauszeiger
+            RET
 mausProc    ENDP
 
 difficulty  PROC                ;Prozedur um den Schwierigkeitsgrad zu ermitteln
             MOV AX, 0Ch         ;Benutzerdefinierte Unterroutine und Eingabemaske fuer die Maus festlegen
-            PUSH CS             ;Wir benoetigen ES:DX = far pointer to user interrupt, dazu pushen wir CS
+            PUSH CS             ;ES:DX = far pointer to user interrupt, dazu pushen wir CS
             POP ES              ;und laden es in ES
             MOV CX, 1111110b    ;Wir reagieren jetzt auf alle Tastenoptionen der Maus (außer das Bewegen der Maus)
                                 ;Routine bei ES: DX wird aufgerufen, wenn ein Ereignis eintritt und das entsprechende Bit in der Benutzermaske gesetzt ist
             MOV DX, OFFSET mausProc ;Wir laden die Adresse von mausProc
             INT 33h             ;Maus Interrupt
-            MOV AX, 01h         ;Zeige Mauszeiger
-            INT 33h
+
+            MOV AX, 01h
+            INT 33h             ;Zeige Mauszeiger
 
 diffLoop:   CMP mode, 0
             JE diffLoop
 
-endDiff:    MOV AX, 0h          ;Reset Maus
-            INT 33h
+endDiff:    MOV AX, 0h
+            INT 33h             ;Reset Maus
 
-            MOV AH, 00h         ;Bildschirm Loeschen
+            MOV AH, 00h
             MOV AL, 3
-            INT 10h
+            INT 10h             ;Bildschirm Loeschen
             RET
 difficulty  ENDP
 
@@ -172,7 +173,7 @@ printScore  ENDP
 printPoints PROC                ;Prozedur um die Punktzahl mit Potenzzerlegung zu zerlegen, falls sie zu gross wird, um sie auszugeben
             XOR AX, AX
             MOV AL, score
-            MOV DL, 40
+            MOV DL, 40          ;Position der ersten Zahl
 
             CMP AL, 9
             JG zehner           ;Wenn ueber 10 JMP zu Zehner-Potenzzerlegung
@@ -197,7 +198,7 @@ zehner:     XOR BL, BL
             INT 10h             ;Zeichen schreiben
 
             MOV AL, divrest     ;In AL den Rest der Division schieben
-            INC DL
+            INC DL              ;Position der zweiten Zahl
 
 printEiner: ADD AL, '0'
             MOV AH, 02h
@@ -224,7 +225,7 @@ printLoop:  INC DI              ;DI hochzaehlen (mussten wir leider so ungeschic
             MOV BH, 0
             MOV DL, snakeX[DI]
             MOV DH, snakeY[DI]
-            INT 10h
+            INT 10h             ;Cursor setzen
 
             MOV AH, 09h
             MOV AL, '+'         ;und gibt dort ein '+' aus
@@ -286,8 +287,6 @@ snakeLoop:  MOV CL, snakeX[DI]
             DEC DI
             CMP DI, 0
             JNE snakeLoop
-            MOV snakeX[DI], 1h
-            MOV snakeY[DI], 1h
             RET
 snakeInc    ENDP
 
@@ -317,7 +316,7 @@ randomDL    ENDP
 
 randomDH    PROC                ;Prozedur um eine Randomzahl fuer DH zu erzeugen
             MOV AH, 00h
-            INT 1Ah
+            INT 1Ah             ;Interrupt um die Systemzeit zu erhalten
 
             MOV AX, DX
             XOR DX, DX
@@ -371,8 +370,8 @@ oldISRback  PROC                ;Prozedur zum Wiederherstellen der alten ISR1Ch
             MOV AX, oldISeg
             MOV DS, AX
             MOV AL, 1Ch
-            MOV AH, 25h         ;Interrupt setzen
-            INT 21h
+            MOV AH, 25h
+            INT 21h             ;Interrupt setzen
             POP DS
             RET
 oldISRback  ENDP
@@ -387,7 +386,7 @@ printEnd:   MOV AH, 00h
             INT 10h             ;Bildschirm loeschen
 
             MOV AH, 09h
-            INT 21h
+            INT 21h             ;Zeichenkette darstellen
             CALL sound
             RET
 endscreen   ENDP

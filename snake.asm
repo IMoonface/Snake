@@ -127,7 +127,6 @@ noButton:   CMP movflag, 1
 moveUp:     CMP movflag, 2      ;Um zu verhindern, dass man direkt nach down nicht wieder up machen kann
             JE noButton
             MOV movflag, 1
-            CALL checkFood      ;Aufruf der Prozedur um zu sehen ob der Kopf der Schlange mit der Position des Futters uebereinstimmt
             CALL resetSnake     ;Aufruf der Prozedur um den body der Schlange anzupassen
             DEC snakeY[DI]      ;(Siehe Erklaerung)
             JMP calls
@@ -135,7 +134,6 @@ moveUp:     CMP movflag, 2      ;Um zu verhindern, dass man direkt nach down nic
 moveDown:   CMP movflag, 1      ;Um zu verhindern, dass man direkt nach up nicht wieder down machen kann
             JE noButton
             MOV movflag, 2
-            CALL checkFood
             CALL resetSnake
             INC snakeY[DI]
             JMP calls
@@ -143,7 +141,6 @@ moveDown:   CMP movflag, 1      ;Um zu verhindern, dass man direkt nach up nicht
 moveLeft:   CMP movflag, 4      ;Um zu verhindern, dass man direkt nach right nicht wieder left machen kann
             JE noButton
             MOV movflag, 3
-            CALL checkFood
             CALL resetSnake
             DEC snakeX[DI]
             JMP calls
@@ -151,7 +148,6 @@ moveLeft:   CMP movflag, 4      ;Um zu verhindern, dass man direkt nach right ni
 moveRight:  CMP movflag, 3      ;Um zu verhindern, dass man direkt nach left nicht wieder right machen kann
             JE noButton
             MOV movflag, 4
-            CALL checkFood
             CALL resetSnake
             INC snakeX[DI]
             JMP calls
@@ -163,7 +159,8 @@ escape:     CALL oldISRback     ;Aufruf der Prozedur zum Widerherstellen der alt
             MOV AH, 4Ch
             INT 21h             ;Zurueck zu DOS
 
-calls:      CALL collision      ;Aufruf der Prozedur um zu testen ob sich die Schlange selber frisst oder der Rahmen berueht wurde
+calls:      CALL checkFood      ;Aufruf der Prozedur um zu sehen ob der Kopf der Schlange mit der Position des Futters uebereinstimmt
+            CALL collision      ;Aufruf der Prozedur um zu testen ob sich die Schlange selber frisst oder der Rahmen berueht wurde
             CALL printSnake
             CALL deleteTail
             JMP waitForKey
