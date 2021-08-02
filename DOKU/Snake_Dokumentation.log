@@ -1,4 +1,4 @@
-This is XeTeX, Version 3.14159265-2.6-0.999991 (TeX Live 2019/Debian) (preloaded format=xelatex 2021.5.10)  2 AUG 2021 13:05
+This is XeTeX, Version 3.14159265-2.6-0.999991 (TeX Live 2019/Debian) (preloaded format=xelatex 2021.5.10)  2 AUG 2021 13:26
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -599,13 +599,13 @@ File: prog.png Graphic file (type bmp)
 File: richtung.png Graphic file (type bmp)
 <richtung.png>
 
-Overfull \hbox (0.29668pt too wide) in paragraph at lines 112--121
+Overfull \hbox (0.29668pt too wide) in paragraph at lines 113--122
 []\TU/SourceSerifPro(0)/m/n/10 Das nachfolgende Bild zeigt, wie die Koordinaten
  angepasst werden, je nach Richtung in der sich die Schlan-
  []
 
 [3]
-Underfull \hbox (badness 10000) in paragraph at lines 123--125
+Underfull \hbox (badness 10000) in paragraph at lines 124--126
 
  []
 
@@ -622,7 +622,7 @@ File: GUI_SKizze-lose.png Graphic file (type bmp)
 File: Klassendiagramm.png Graphic file (type bmp)
 <Klassendiagramm.png>
 
-Underfull \hbox (badness 10000) in paragraph at lines 166--172
+Underfull \hbox (badness 10000) in paragraph at lines 167--173
 
  []
 
@@ -667,9 +667,9 @@ braces):
 >  {german/babelname}  =>  {ngerman}
 >  {german/localnumeral}  =>  {polyglossia@C@localnumeral}
 >  {german/Localnumeral}  =>  {polyglossia@C@localnumeral}.
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 242.
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 243.
  [9]
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 242.
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 243.
  (./Snake_Dokumentation.aux
 Package polyglossia Info: Option: German, spelling=new.
 Package polyglossia Info: Option: German, spelling=new.
@@ -677,15 +677,15 @@ LaTeX Info: Redefining \rmfamily on input line 20.
 LaTeX Info: Redefining \sffamily on input line 20.
 LaTeX Info: Redefining \ttfamily on input line 20.
 )
-Package atveryend Info: Empty hook `AtVeryEndDocument' on input line 242.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 242.
+Package atveryend Info: Empty hook `AtVeryEndDocument' on input line 243.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 243.
 Package rerunfilecheck Info: File `Snake_Dokumentation.out' has not changed.
-(rerunfilecheck)             Checksum: 20109B8E73041E6D21784ECEEB63DE40;868.
+(rerunfilecheck)             Checksum: 9701C6697B7AF0B228124FE7D98BD6D8;862.
  ) 
 Here is how much of TeX's memory you used:
  13062 strings out of 479819
  258025 string characters out of 5895846
- 570877 words of memory out of 5000000
+ 570871 words of memory out of 5000000
  29994 multiletter control sequences out of 15000+600000
  535706 words of font info for 68 fonts, out of 8000000 for 9000
  1348 hyphenation exceptions out of 8191

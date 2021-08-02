@@ -3,7 +3,7 @@
 \contentsline {subsection}{\numberline {1.1}Anleitung}{2}{subsection.1.1}%
 \contentsline {subsection}{\numberline {1.2}Besonderheiten}{2}{subsection.1.2}%
 \contentsline {section}{\numberline {2}Entwurfsskizzen}{3}{section.2}%
-\contentsline {subsection}{\numberline {2.1}Programm Skizzen}{3}{subsection.2.1}%
+\contentsline {subsection}{\numberline {2.1}Programmlogik}{3}{subsection.2.1}%
 \contentsline {subsection}{\numberline {2.2}GUI Skizzen}{4}{subsection.2.2}%
 \contentsline {section}{\numberline {3}Programmarchitektur}{6}{section.3}%
 \contentsline {section}{\numberline {4}Tests}{7}{section.4}%

@@ -94,13 +94,14 @@
 		%
 	\section{Entwurfsskizzen}
 		
-		\subsection{Programm Skizzen}
+		\subsection{Programmlogik}
 			Die Prozedur "resetSnake" \- aktualisiert unser Schlangen-Array und 
 			wird vor jedem Zeichnen aufgerufen. Dabei werden die Werte in dem 
-			Array von der höchsten zur niedrigsten Stelle verschoben.
-			Bei "snakeInc" \- wird das Array um eine Position vergrößert, da 
-			diese Prozedur aufgerufen wird, wenn Futter eingesammelt wurde und 
-			bevor die Länge der Schlange erhöht wird.\\
+			Array von der höchsten zur niedrigsten Stelle, jeweils um ein Feld 
+			verschoben. \\
+			Bei "snakeInc" \- wird eine nicht initialisierte Feld (mit 0 
+			beschriebenes Feld) mit einem Wert beschrieben und somit wird 
+			eine verlängerte Schlange gezeichnet. \\
 			\begin{figure}[h]
 				\centering
 				\includegraphics[width=0.65\textwidth]{prog}
