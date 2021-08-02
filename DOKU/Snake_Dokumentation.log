@@ -1,4 +1,4 @@
-This is XeTeX, Version 3.14159265-2.6-0.999991 (TeX Live 2019/Debian) (preloaded format=xelatex 2021.5.10)  29 JUL 2021 19:10
+This is XeTeX, Version 3.14159265-2.6-0.999991 (TeX Live 2019/Debian) (preloaded format=xelatex 2021.5.10)  2 AUG 2021 13:05
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -594,7 +594,18 @@ LaTeX Font Info:    External font `cmex10' loaded for size
 \openout4 = `Snake_Dokumentation.toc'.
 
  [1] [2]
-Underfull \hbox (badness 10000) in paragraph at lines 97--99
+File: prog.png Graphic file (type bmp)
+<prog.png>
+File: richtung.png Graphic file (type bmp)
+<richtung.png>
+
+Overfull \hbox (0.29668pt too wide) in paragraph at lines 112--121
+[]\TU/SourceSerifPro(0)/m/n/10 Das nachfolgende Bild zeigt, wie die Koordinaten
+ angepasst werden, je nach Richtung in der sich die Schlan-
+ []
+
+[3]
+Underfull \hbox (badness 10000) in paragraph at lines 123--125
 
  []
 
@@ -602,26 +613,26 @@ File: GUI_start.png Graphic file (type bmp)
 <GUI_start.png>
 File: GUI_SKizze-gameplay.png Graphic file (type bmp)
 <GUI_SKizze-gameplay.png>
-[3]
+[4]
 File: GUI_SKizze-win.png Graphic file (type bmp)
 <GUI_SKizze-win.png>
 File: GUI_SKizze-lose.png Graphic file (type bmp)
 <GUI_SKizze-lose.png>
- [4]
-File: Klassendiagramm_aktuell.png Graphic file (type bmp)
-<Klassendiagramm_aktuell.png>
+ [5]
+File: Klassendiagramm.png Graphic file (type bmp)
+<Klassendiagramm.png>
 
-Underfull \hbox (badness 10000) in paragraph at lines 140--146
+Underfull \hbox (badness 10000) in paragraph at lines 166--172
 
  []
 
-[5]
+[6]
 File: tests.png Graphic file (type bmp)
 <tests.png>
- [6]
+ [7]
 File: tests_2.png Graphic file (type bmp)
 <tests_2.png>
- [7]
+ [8]
 The property list \polyglossia@langsetup contains the pairs (without outer
 braces):
 >  {latex/script}  =>  {latin}
@@ -656,8 +667,9 @@ braces):
 >  {german/babelname}  =>  {ngerman}
 >  {german/localnumeral}  =>  {polyglossia@C@localnumeral}
 >  {german/Localnumeral}  =>  {polyglossia@C@localnumeral}.
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 187.
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 187.
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 242.
+ [9]
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 242.
  (./Snake_Dokumentation.aux
 Package polyglossia Info: Option: German, spelling=new.
 Package polyglossia Info: Option: German, spelling=new.
@@ -665,18 +677,18 @@ LaTeX Info: Redefining \rmfamily on input line 20.
 LaTeX Info: Redefining \sffamily on input line 20.
 LaTeX Info: Redefining \ttfamily on input line 20.
 )
-Package atveryend Info: Empty hook `AtVeryEndDocument' on input line 187.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 187.
+Package atveryend Info: Empty hook `AtVeryEndDocument' on input line 242.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 242.
 Package rerunfilecheck Info: File `Snake_Dokumentation.out' has not changed.
-(rerunfilecheck)             Checksum: F0FF35F2868923EF1E847CF13B287E87;479.
+(rerunfilecheck)             Checksum: 20109B8E73041E6D21784ECEEB63DE40;868.
  ) 
 Here is how much of TeX's memory you used:
- 13035 strings out of 479819
- 257802 string characters out of 5895846
- 570319 words of memory out of 5000000
- 29967 multiletter control sequences out of 15000+600000
+ 13062 strings out of 479819
+ 258025 string characters out of 5895846
+ 570877 words of memory out of 5000000
+ 29994 multiletter control sequences out of 15000+600000
  535706 words of font info for 68 fonts, out of 8000000 for 9000
  1348 hyphenation exceptions out of 8191
  50i,7n,79p,810b,384s stack positions out of 5000i,500n,10000p,200000b,80000s
 
-Output written on Snake_Dokumentation.pdf (8 pages).
+Output written on Snake_Dokumentation.pdf (10 pages).

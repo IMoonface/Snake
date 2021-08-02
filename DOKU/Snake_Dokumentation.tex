@@ -94,44 +94,70 @@
 		%
 	\section{Entwurfsskizzen}
 		
-		Die grafische Oberfläche wurde nach den nachfolgenden Skizzen 
-		erstellt:\\
+		\subsection{Programm Skizzen}
+			Die Prozedur "resetSnake" \- aktualisiert unser Schlangen-Array und 
+			wird vor jedem Zeichnen aufgerufen. Dabei werden die Werte in dem 
+			Array von der höchsten zur niedrigsten Stelle verschoben.
+			Bei "snakeInc" \- wird das Array um eine Position vergrößert, da 
+			diese Prozedur aufgerufen wird, wenn Futter eingesammelt wurde und 
+			bevor die Länge der Schlange erhöht wird.\\
+			\begin{figure}[h]
+				\centering
+				\includegraphics[width=0.65\textwidth]{prog}
+				\caption{Prozeduren resetSnake und snakeInc}
+				\label{SnakPro}
+			\end{figure}
+			%
+			
+			Das nachfolgende Bild zeigt, wie die Koordinaten angepasst werden, 
+			je nach Richtung in der sich die Schlange bewegen soll.\\
+			\begin{figure}[h]
+				\centering
+				\includegraphics[width=0.45\textwidth]{richtung}
+				\caption{Bewegung der Schalnge}
+				\label{move}
+			\end{figure}
+			%
+			\newpage
+		\subsection{GUI Skizzen}
+			Die grafische Oberfläche wurde nach den nachfolgenden Skizzen 
+			erstellt:\\
 		
-		\begin{figure}[h]
-			\centering
-			\includegraphics[width=0.65\textwidth]{GUI_start}
-			\caption{Startbildschirm}
-			\label{GUI-Start}
-		\end{figure}
-		%
-		\begin{figure}[h]
-			\centering
-			\includegraphics[width=0.65\textwidth]{GUI_SKizze-gameplay}
-			\caption{Spielbildschirm}
-			\label{GUI-Gameplay}
-		\end{figure}
-		\newpage
-		%
-		\begin{figure}[h]
-			\centering
-			\includegraphics[width=0.65\textwidth]{GUI_SKizze-win}
-			\caption{Bildschirm bei erfolgreichem Spielende}
-			\label{GUI-Win}
-		\end{figure}
-		%
-		\begin{figure}[h]
-			\centering
-			\includegraphics[width=0.65\textwidth]{GUI_SKizze-lose}
-			\caption{Bildschirm bei verlorener Runde}
-			\label{GUI-Lose}
-		\end{figure}
-		\newpage
-		%
+			\begin{figure}[h]
+				\centering
+				\includegraphics[width=0.65\textwidth]{GUI_start}
+				\caption{Startbildschirm}
+				\label{GUI-Start}
+			\end{figure}
+			%
+			\begin{figure}[h]
+				\centering
+				\includegraphics[width=0.65\textwidth]{GUI_SKizze-gameplay}
+				\caption{Spielbildschirm}
+				\label{GUI-Gameplay}
+			\end{figure}
+			\newpage
+			%
+			\begin{figure}[h]
+				\centering
+				\includegraphics[width=0.65\textwidth]{GUI_SKizze-win}
+				\caption{Bildschirm bei erfolgreichem Spielende}
+				\label{GUI-Win}
+			\end{figure}
+			%
+			\begin{figure}[h]
+				\centering
+				\includegraphics[width=0.65\textwidth]{GUI_SKizze-lose}
+				\caption{Bildschirm bei verlorener Runde}
+				\label{GUI-Lose}
+			\end{figure}
+			\newpage
+			%
 	\section{Programmarchitektur}
 		Nach dem untenstehenden Diagramm ist die Architektur aufgebaut: \\
 		\begin{figure}[h]
 			\centering
-			\includegraphics[width=1\textwidth]{Klassendiagramm_aktuell}
+			\includegraphics[width=1\textwidth]{Klassendiagramm}
 			\caption{Programmstruktur}
 			\label{UML}
 		\end{figure}
@@ -161,18 +187,20 @@
 			dieselben Zahlen in anderer Reihenfolge. Es handelt sich also 
 			hierbei nur um einen Pseudozufallszahlengenerator (PRNG). Am Anfang 
 			kommen (meist) die selben beiden Zahlen raus was daran liegt, dass 
-			es durch die "sound" - Prozedur keine Verzögerung gibt, welche man 
+			es durch die "sound" \- - Prozedur keine Verzögerung gibt, welche 
+			man 
 			aber brauch, damit andere Zahlen rauskommen. Der Unterschied durch 
-			die "sound" - Prozedur ist auch sehr gering und berechenbar. Im 
+			die "sound" \- - Prozedur ist auch sehr gering und berechenbar. Im 
 			Allgemeinen funktionieren die Zahlen, aber da wir bei 30 Tests 10 
 			Unterschiedliche Zahlen bekommen und dies reicht, damit das 
-			"spawnen" des Futters zufällig wirkt.
+			Zeichnen des Futters zufällig wirkt.
 			\newpage
 			%
 		\subsection{Random Numbergenerator Test 2}
 		
-			Nachdem wir in diesem Test das kleine Delay durch die "sound" - 
-			Proc nicht mehr ausnutzen kommen immer 2-mal dieselben Zahlen raus, 
+			Nachdem wir in diesem Test das kleine Delay durch die "sound" \- - 
+			Prozedur nicht mehr ausnutzen kommen immer 2-mal dieselben Zahlen 
+			raus, 
 			jedoch im Gesamten viel mehr unterschiedliche Zahlen, weshalb wir 
 			uns entscheiden, diese Methode beizubehalten, weil es so auch 
 			optisch schöner im Gesamtbild ist.
@@ -184,4 +212,31 @@
 			\end{figure}
 			\newpage
 			%
+		\subsection{Collision Test}
+		
+			In dieser Prozedur wird überprüft ob der Schlangenkopf mit einem 
+			anderen "+" \- Zeichen kollidiert, ist das der Fall berührt sich 
+			die 
+			Schlange selber und das Spiel ist vorbei.
+			%
+		\subsection{Check Score}
+		
+			Hier wird überprüft ob die vorgegebene Punktezahl erreicht ist mit 
+			der ein Spiel gewonnen wird oder die Geschwindigkeit erhöht wird.
+			%
+		\subsection{Check Posi}
+		
+			Wird überprüft ob ein Buchstabe der Strings "easy", "normal" \- 
+			oder 
+			"hard" \- angeklickt wurde und setzt die entsprechende 
+			Konfiguration 
+			in dem Spiel.
+			%
+		\subsection{Check Food}
+		
+			Testet ob die Position des Schlangenkopfs mit der Position des 
+			Futters übereinstimmt. Sind die Koordinaten die selben, ertönt ein 
+			Ton, die Schlange wird verlängert und das Futter wird einer neuen 
+			Stelle gezeichnet
+			%.
 \end{document}
