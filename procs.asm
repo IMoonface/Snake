@@ -277,14 +277,14 @@ snakeInc    PROC                ;Prozedur um den body der Schlange zu verlaenger
             XOR DI, DI
             XOR CX, CX
             MOV DI, snakeSize
-
+            INC DI
 ;Die Werte des Arrays werden "durchgeschoben", also der Wert an der hoechsten Indexstelle+1 bekommt den Wert
 ;der hoechsten Indexstelle und dieser bekommt wiederrum den Wert an der 2t hoechsten Indexstelle usw.
-snakeLoop:  MOV CL, snakeX[DI]
+snakeLoop:  DEC DI
+            MOV CL, snakeX[DI]
             MOV CH, snakeY[DI]
             MOV snakeX[DI+1], CL
             MOV snakeY[DI+1], CH
-            DEC DI
             CMP DI, 0
             JNE snakeLoop
             RET
