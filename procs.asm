@@ -7,7 +7,7 @@ printLogo   PROC                ;Prozedur zum Printen des Logos
 
             MOV AH, 01h
             MOV CX, 2607h
-            INT 10h
+            INT 10h             ;Cursorform einstellen
 
             MOV AH, 09h
             MOV DX, OFFSET logo ;Offset des Zeigers, der eine mit $ abgeschlossene Zeichenkette angibt
@@ -34,31 +34,30 @@ mausProc    PROC FAR            ;Muss FAR sein, weil vom Interrupt vorgeschriebe
             CALL checkPosi      ;Aufruf der Prozedur um zu testen, ob Easy, Normal oder Hard angeklickt wurde
 
             MOV AX, 01h
-            INT 33h             ;Zeige Mauszeiger
-            RET
+            INT 33h             ;Zeige Mauszeiger, damit das Zeichen was wir geschrieben haben nicht den Mauszeiger verdeckt
+            RET                 ;Zum zurueckspringen
 mausProc    ENDP
 
 difficulty  PROC                ;Prozedur um den Schwierigkeitsgrad zu ermitteln
             MOV AX, 0Ch         ;Benutzerdefinierte Unterroutine und Eingabemaske fuer die Maus festlegen
-            PUSH CS             ;ES:DX = far pointer to user interrupt, dazu pushen wir CS
+            PUSH CS             ;Wir benoetigen ES:DX = far pointer to user interrupt, dazu pushen wir CS
             POP ES              ;und laden es in ES
             MOV CX, 1111110b    ;Wir reagieren jetzt auf alle Tastenoptionen der Maus (außer das Bewegen der Maus)
                                 ;Routine bei ES: DX wird aufgerufen, wenn ein Ereignis eintritt und das entsprechende Bit in der Benutzermaske gesetzt ist
             MOV DX, OFFSET mausProc ;Wir laden die Adresse von mausProc
             INT 33h             ;Maus Interrupt
-
             MOV AX, 01h
             INT 33h             ;Zeige Mauszeiger
 
 diffLoop:   CMP mode, 0
             JE diffLoop
 
-endDiff:    MOV AX, 0h
-            INT 33h             ;Reset Maus
+endDiff:    MOV AX, 0h          ;Reset Maus
+            INT 33h
 
-            MOV AH, 00h
+            MOV AH, 00h         ;Bildschirm Loeschen
             MOV AL, 3
-            INT 10h             ;Bildschirm Loeschen
+            INT 10h
             RET
 difficulty  ENDP
 
@@ -173,7 +172,7 @@ printScore  ENDP
 printPoints PROC                ;Prozedur um die Punktzahl mit Potenzzerlegung zu zerlegen, falls sie zu gross wird, um sie auszugeben
             XOR AX, AX
             MOV AL, score
-            MOV DL, 40          ;Position der ersten Zahl
+            MOV DL, 40
 
             CMP AL, 9
             JG zehner           ;Wenn ueber 10 JMP zu Zehner-Potenzzerlegung
@@ -198,7 +197,7 @@ zehner:     XOR BL, BL
             INT 10h             ;Zeichen schreiben
 
             MOV AL, divrest     ;In AL den Rest der Division schieben
-            INC DL              ;Position der zweiten Zahl
+            INC DL
 
 printEiner: ADD AL, '0'
             MOV AH, 02h
@@ -232,7 +231,7 @@ printLoop:  INC DI              ;DI hochzaehlen (mussten wir leider so ungeschic
             MOV BH, 0
             MOV BL, 00101110b   ;Farbe Gelb (Bits 4-0) und der Hintergrund Gruen (Bits 7-5), 8 Bit fuers Blinken
             MOV CX, 1
-            INT 10h
+            INT 10h             ;Zeichen schreiben
 
             CMP DI, snakeSize
             JNE printLoop
@@ -277,16 +276,18 @@ snakeInc    PROC                ;Prozedur um den body der Schlange zu verlaenger
             XOR DI, DI
             XOR CX, CX
             MOV DI, snakeSize
-            INC DI
+
 ;Die Werte des Arrays werden "durchgeschoben", also der Wert an der hoechsten Indexstelle+1 bekommt den Wert
 ;der hoechsten Indexstelle und dieser bekommt wiederrum den Wert an der 2t hoechsten Indexstelle usw.
-snakeLoop:  DEC DI
-            MOV CL, snakeX[DI]
+snakeLoop:  MOV CL, snakeX[DI]
             MOV CH, snakeY[DI]
             MOV snakeX[DI+1], CL
             MOV snakeY[DI+1], CH
+            DEC DI
             CMP DI, 0
             JNE snakeLoop
+            MOV snakeX[DI], 1h
+            MOV snakeY[DI], 1h
             RET
 snakeInc    ENDP
 
@@ -316,7 +317,7 @@ randomDL    ENDP
 
 randomDH    PROC                ;Prozedur um eine Randomzahl fuer DH zu erzeugen
             MOV AH, 00h
-            INT 1Ah             ;Interrupt um die Systemzeit zu erhalten
+            INT 1Ah
 
             MOV AX, DX
             XOR DX, DX
