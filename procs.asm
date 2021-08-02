@@ -110,7 +110,7 @@ rightSide:  MOV AH, 02h
 
             INC DH
             CMP DH, 24
-            JNE rightSide       ;Falls nicht equal -> Weiter mit der rechten Seite
+            JNE rightSide       ;Falls nicht equal, dann weiter mit der rechten Seite
 
             ;Unterer Rand
             MOV AH, 02h
